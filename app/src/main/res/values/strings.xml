@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">Apostolic Reference Bible</string>
+    <string name="search_bible">Search Bible</string>
+    <string name="close_search">Close Search</string>
+    <string name="clear_search">Clear Search</string>
+    <string name="search_icon">Search Icon</string>
+    <string name="search_hint">Search (e.g. mar 1 3, love..)</string>
+    <string name="kjv_placeholder">KJV</string>
+    <string name="mark_1_3_placeholder">Mark 1:3</string>
+    <string name="mark_chapter_count_placeholder">Mark (16 Chapters)</string>
+    <string name="tap_to_open_mark_placeholder">Tap or press Search to open Mark 1:3</string>
+    <string name="kjv_prefix_placeholder">KJV: </string>
+    <string name="ot_stats_placeholder">OT - 0</string>
+    <string name="nt_stats_placeholder">NT - 0</string>
+    <string name="plus_icon_placeholder">[ + ]</string>
+    <string name="divider_pipe">|</string>
+    <string name="search_status_placeholder">Type a reference (mar 1 3) or word (love..)</string>
+    <string name="prev_page">◄ Prev</string>
+    <string name="next_page">Next ►</string>
+    <string name="page_indicator_placeholder">Page 1 of 1</string>
+</resources>

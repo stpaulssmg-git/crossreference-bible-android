@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        html, body {
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.65;
+            padding: 20px 18px 40px 18px;
+            margin: 0 auto;
+            max-width: 960px;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        /* --- THEME 1: WARM (PARCHMENT) --- */
+        body.theme-warm {
+            background-color: #FBF9F5;
+            color: #2C2C2C;
+        }
+        body.theme-warm .verse-num {
+            color: #B71C1C;
+        }
+        body.theme-warm .cross-ref {
+            color: #1565C0;
+            border-bottom: 1.5px dashed #1565C0;
+        }
+        body.theme-warm .cross-ref:active {
+            background-color: #E3F2FD;
+        }
+        body.theme-warm .missing-text {
+            color: #757575;
+        }
+
+        /* --- THEME 2: CRIMSON --- */
+        body.theme-crimson {
+            background-color: #FFF8F6;
+            color: #3E1014;
+        }
+        body.theme-crimson .verse-num {
+            color: #8B0000;
+        }
+        body.theme-crimson .cross-ref {
+            color: #B71C1C;
+            border-bottom: 1.5px dashed #B71C1C;
+        }
+        body.theme-crimson .cross-ref:active {
+            background-color: #FFEBEE;
+        }
+        body.theme-crimson .missing-text {
+            color: #8C5A5D;
+        }
+
+        /* --- THEME 3: TEAL --- */
+        body.theme-teal {
+            background-color: #F2F8F8;
+            color: #112A2C;
+        }
+        body.theme-teal .verse-num {
+            color: #005F60;
+        }
+        body.theme-teal .cross-ref {
+            color: #00796B;
+            border-bottom: 1.5px dashed #00796B;
+        }
+        body.theme-teal .cross-ref:active {
+            background-color: #E0F2F1;
+        }
+        body.theme-teal .missing-text {
+            color: #547A7C;
+        }
+
+        /* --- THEME 4: DARK --- */
+        body.theme-dark {
+            background-color: #121212;
+            color: #E0E0E0;
+        }
+        body.theme-dark .verse-num {
+            color: #EF5350;
+        }
+        body.theme-dark .cross-ref {
+            color: #64B5F6;
+            border-bottom: 1.5px dashed #64B5F6;
+        }
+        body.theme-dark .cross-ref:active {
+            background-color: #1E3A5F;
+        }
+        body.theme-dark .missing-text {
+            color: #9E9E9E;
+        }
+
+        .missing-text {
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        .verse-num {
+            font-weight: bold;
+            font-size: 0.85em;
+            margin-right: 6px;
+            margin-left: 6px;
+            user-select: none;
+            cursor: pointer;
+        }
+        .cross-ref {
+            font-weight: 500;
+            cursor: pointer;
+            padding-bottom: 1px;
+            transition: background-color 0.15s ease;
+        }
+
+        .xref-btn {
+            font-size: 0.70em;
+            font-weight: bold;
+            color: #1565C0;
+            background-color: rgba(21, 101, 192, 0.10);
+            border-radius: 3px;
+            padding: 1px 5px;
+            margin-left: 6px;
+            margin-right: 6px;
+            cursor: pointer;
+            user-select: none;
+            display: inline-block;
+        }
+        body.theme-crimson .xref-btn {
+            color: #B71C1C;
+            background-color: rgba(183, 28, 28, 0.10);
+        }
+        body.theme-teal .xref-btn {
+            color: #00796B;
+            background-color: rgba(0, 121, 107, 0.10);
+        }
+        body.theme-dark .xref-btn {
+            color: #64B5F6;
+            background-color: rgba(100, 181, 246, 0.18);
+        }
+
+        .secondary-verse-block {
+            margin-top: 6px;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border-left: 3px solid #1565C0;
+            background-color: rgba(0, 0, 0, 0.03);
+            border-radius: 0 6px 6px 0;
+            unicode-bidi: plaintext;
+        }
+        body.theme-crimson .secondary-verse-block {
+            border-left-color: #B71C1C;
+            background-color: rgba(183, 28, 28, 0.04);
+        }
+        body.theme-teal .secondary-verse-block {
+            border-left-color: #00796B;
+            background-color: rgba(0, 121, 107, 0.04);
+        }
+        body.theme-dark .secondary-verse-block {
+            border-left-color: #64B5F6;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .secondary-row {
+            margin-bottom: 6px;
+            font-size: 0.95em;
+            line-height: 1.5;
+            text-align: left;
+            direction: ltr;
+        }
+        .secondary-row.secondary-rtl {
+            text-align: right;
+            direction: rtl;
+        }
+        .secondary-row.secondary-rtl .trans-tag {
+            margin-left: 6px;
+            margin-right: 0;
+        }
+        .secondary-row:last-child {
+            margin-bottom: 0;
+        }
+        .secondary-text {
+            unicode-bidi: plaintext;
+            opacity: 0.82;
+            font-size: 0.93em;
+        }
+        body.theme-warm .secondary-text { color: #444444; }
+        body.theme-crimson .secondary-text { color: #5C282C; }
+        body.theme-teal .secondary-text { color: #234A4D; }
+        body.theme-dark .secondary-text { color: #B0B0B0; }
+
+        .trans-tag {
+            font-size: 0.8em;
+            font-weight: bold;
+            color: #1565C0;
+            display: inline-block;
+            margin-right: 6px;
+            margin-left: 6px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        body.theme-crimson .trans-tag { color: #B71C1C; }
+        body.theme-teal .trans-tag { color: #00796B; }
+        body.theme-dark .trans-tag { color: #64B5F6; }
+
+        p.verse-p {
+            cursor: pointer;
+            margin-top: 0;
+            margin-bottom: 14px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+            border-radius: 4px;
+            padding: 2px 4px;
+            transition: background-color 0.4s ease;
+        }
+    </style>
+</head>
+<body class="theme-warm">
+    <div id="content">
+        <!-- BIBLE_CONTENT_PLACEHOLDER -->
+    </div>
+
+    <script>
+        function setTheme(themeName) {
+            document.body.className = 'theme-' + themeName;
+        }
+
+        function toggleCompare(verseId, event) {
+            if (event && event.target) {
+                if (event.target.classList.contains('cross-ref') || event.target.classList.contains('xref-btn') || event.target.classList.contains('trans-tag')) {
+                    return;
+                }
+            }
+            let el = document.getElementById(verseId);
+            if (el) {
+                if (el.style.display === 'none' || el.style.display === '') {
+                    el.style.display = 'block';
+                } else {
+                    el.style.display = 'none';
+                }
+            }
+        }
+
+        function scrollToVerse(verseNum) {
+            let el = document.getElementById('v_p_' + verseNum);
+            if (!el) {
+                let spans = document.querySelectorAll('.verse-num');
+                for (let span of spans) {
+                    if (span.innerText.trim() === String(verseNum)) {
+                        el = span.parentElement;
+                        break;
+                    }
+                }
+            }
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                let origBg = el.style.backgroundColor;
+                el.style.backgroundColor = 'rgba(255, 235, 59, 0.45)'; // Yellow highlight glow
+                setTimeout(function() {
+                    el.style.backgroundColor = origBg;
+                }, 2500);
+            }
+        }
+
+        (function() {
+            let touchStartX = 0;
+            let touchStartY = 0;
+
+            let initialPinchDist = 0;
+            let currentFontSize = 14;
+            if (document.body.style.fontSize) {
+                let parsed = parseFloat(document.body.style.fontSize);
+                if (parsed && !isNaN(parsed)) {
+                    currentFontSize = parsed;
+                }
+            }
+            let initialFontSize = currentFontSize;
+            let isPinching = false;
+            let animFrameId = null;
+
+            function updateFontSize() {
+                document.body.style.fontSize = currentFontSize.toFixed(1) + 'px';
+                animFrameId = null;
+            }
+
+            document.addEventListener('touchstart', function(e) {
+                if (e.touches && e.touches.length === 2) {
+                    isPinching = true;
+                    initialPinchDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    initialFontSize = currentFontSize;
+                } else if (e.touches && e.touches.length === 1) {
+                    isPinching = false;
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchmove', function(e) {
+                if (e.touches && e.touches.length === 2 && initialPinchDist > 0) {
+                    let dist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    let scale = dist / initialPinchDist;
+                    let newSize = Math.min(Math.max(initialFontSize * scale, 14), 40);
+
+                    if (Math.abs(newSize - currentFontSize) > 0.1) {
+                        currentFontSize = newSize;
+                        if (!animFrameId) {
+                            animFrameId = requestAnimationFrame(updateFontSize);
+                        }
+                        if (window.Android && window.Android.saveFontSize) {
+                            window.Android.saveFontSize(currentFontSize);
+                        }
+                    }
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchend', function(e) {
+                if (window.Android && window.Android.saveFontSize) {
+                    window.Android.saveFontSize(currentFontSize);
+                }
+
+                if (isPinching && e.touches.length < 2) {
+                    isPinching = false;
+                } else if (e.changedTouches && e.changedTouches.length === 1 && !isPinching) {
+                    let touchEndX = e.changedTouches[0].clientX;
+                    let touchEndY = e.changedTouches[0].clientY;
+
+                    let deltaX = touchEndX - touchStartX;
+                    let deltaY = touchEndY - touchStartY;
+
+                    // Detect horizontal swipe for changing chapters
+                    if (Math.abs(deltaX) > 60 && Math.abs(deltaY) < 50) {
+                        if (deltaX < 0) {
+                            if (window.Android && window.Android.onNextChapter) {
+                                window.Android.onNextChapter();
+                            }
+                        } else {
+                            if (window.Android && window.Android.onPreviousChapter) {
+                                window.Android.onPreviousChapter();
+                            }
+                        }
+                    }
+                }
+            }, { passive: true });
+        })();
+    </script>
+</body>
+</html>

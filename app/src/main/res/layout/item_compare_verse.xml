@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="10dp"
+    android:paddingBottom="12dp">
+
+    <!-- Translation Name -->
+    <TextView
+        android:id="@+id/tvTransName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ABP (Apostolic Bible Polyglot)"
+        android:textColor="#1565C0"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <!-- Verse Text Snippet -->
+    <TextView
+        android:id="@+id/tvTransText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="In beginning made the God the heaven and the earth."
+        android:textColor="#2C2C2C"
+        android:textSize="15sp"
+        android:lineSpacingExtra="3dp"
+        android:textDirection="firstStrong" />
+
+    <!-- Switch Primary Button -->
+    <TextView
+        android:id="@+id/btnSetPrimary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Switch Primary to this Translation"
+        android:textColor="#1565C0"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground" />
+
+    <View
+        android:id="@+id/vCompareItemDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="12dp"
+        android:background="#EEEEEE" />
+
+</LinearLayout>

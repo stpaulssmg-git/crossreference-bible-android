@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/compareSheetContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:paddingStart="20dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="24dp">
+
+    <!-- Drag Handle -->
+    <View
+        android:id="@+id/vDragHandle"
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="#CCCCCC" />
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvCompareTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Compare Verse"
+        android:textColor="#1565C0"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <!-- Subtitle (Source Verse) -->
+    <TextView
+        android:id="@+id/tvCompareSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="12dp"
+        android:text="Genesis 1:1"
+        android:textColor="#757575"
+        android:textSize="13sp" />
+
+    <View
+        android:id="@+id/vCompareDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="12dp"
+        android:background="#E0E0E0" />
+
+    <!-- No Secondary Translation Enabled Prompt -->
+    <LinearLayout
+        android:id="@+id/layoutNoSecondary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:gravity="center_horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvNoSecondaryMsg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enable secondary translations (like ABP) in settings to compare verses side-by-side."
+            android:textColor="#555555"
+            android:textSize="14sp"
+            android:gravity="center_horizontal"
+            android:lineSpacingExtra="3dp" />
+
+        <Button
+            android:id="@+id/btnManageTranslationsPrompt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Manage Translations"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#1565C0" />
+
+    </LinearLayout>
+
+    <!-- Verses Comparison List Container -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollCompareVerses"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="420dp">
+
+        <LinearLayout
+            android:id="@+id/containerCompareVerses"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+
+    <!-- Reference Name (e.g., Prov 8:22-24) -->
+    <TextView
+        android:id="@+id/tvReference"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Prov 8:22-24"
+        android:textColor="#B71C1C"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <!-- Verse Preview Text -->
+    <TextView
+        android:id="@+id/tvPreviewText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="The LORD possessed me in the beginning of his way..."
+        android:textColor="#424242"
+        android:textSize="12sp"
+        android:lineSpacingExtra="2dp"
+        android:textDirection="firstStrong" />
+
+    <View
+        android:id="@+id/itemDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="6dp"
+        android:background="#EEEEEE" />
+
+</LinearLayout>

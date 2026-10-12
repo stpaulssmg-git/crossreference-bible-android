@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/aboutContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:paddingStart="20dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="24dp">
+
+    <!-- Drag Handle -->
+    <View
+        android:id="@+id/vDragHandle"
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="12dp"
+        android:background="#CCCCCC" />
+
+    <!-- Header Section with App Icon & Branding -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <ImageView
+            android:id="@+id/ivAboutIcon"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@mipmap/ic_launcher"
+            android:contentDescription="App Icon" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvAboutTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Apostolic Reference Bible"
+                android:textColor="#1C1B1F"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvAboutVersion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:text="Version 1.0 • Offline Study Edition"
+                android:textColor="#757575"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/vAboutDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="10dp"
+        android:background="#E0E0E0" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 1. Manage Translations Section (Collapsible - Collapsed by Default) -->
+            <LinearLayout
+                android:id="@+id/btnToggleManageTranslations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp">
+
+                <TextView
+                    android:id="@+id/tvManageTranslationsHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Manage Translations"
+                    android:textColor="#1C1B1F"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/ivManageTranslationsDropdown"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="Toggle Translations List"
+                    android:src="@android:drawable/arrow_down_float"
+                    app:tint="#1C1B1F" />
+
+            </LinearLayout>
+
+            <!-- Collapsible Content Container (Default Collapsed) -->
+            <LinearLayout
+                android:id="@+id/layoutManageTranslationsContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- Single Table Column Header -->
+                <LinearLayout
+                    android:id="@+id/tableHeaderRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="4dp">
+
+                    <TextView
+                        android:id="@+id/tvColTranslation"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Translation"
+                        android:textColor="#757575"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvColPrimary"
+                        android:layout_width="64dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Primary"
+                        android:textColor="#757575"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:singleLine="true" />
+
+                    <TextView
+                        android:id="@+id/tvColCompare"
+                        android:layout_width="64dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Compare"
+                        android:textColor="#757575"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:singleLine="true" />
+
+                </LinearLayout>
+
+                <View
+                    android:id="@+id/vTableHeaderDivider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="4dp"
+                    android:background="#EEEEEE" />
+
+                <!-- Dynamic Translations List Container -->
+                <LinearLayout
+                    android:id="@+id/containerTranslations"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+            <View
+                android:id="@+id/vAboutDivider2"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:background="#E0E0E0" />
+
+            <!-- 2. About the App Section -->
+            <TextView
+                android:id="@+id/tvAboutAppHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="About Apostolic Reference Bible"
+                android:textColor="#1C1B1F"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvAboutDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="2dp"
+                android:text="A comprehensive, offline multi-translation Bible study application featuring integrated Treasury of Scripture Knowledge (TSK) cross-references, inline parallel verse comparisons, customizable themes, and fast verse search."
+                android:textColor="#444444"
+                android:textSize="11sp" />
+
+            <View
+                android:id="@+id/vAboutDividerFeature"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:background="#E0E0E0" />
+
+            <!-- 3. Key Features Section -->
+            <TextView
+                android:id="@+id/tvKeyFeaturesHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="Key Features"
+                android:textColor="#1C1B1F"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvKeyFeaturesDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="3dp"
+                android:text="• Smart Verse &amp; Reference Search: Fast 1/2/3-letter reference jump (e.g. 'h 3 2' -&gt; Hosea 3:2, 'ma 3 2' -&gt; Matthew, Mark, Malachi)\n• Whole-Word &amp; Wildcard Engine: Exact case-insensitive word matching plus wildcard '..' (e.g. 'love..')\n• Testament Breakdown &amp; Book Filter: Real-time OT/NT stats bar with a 2-column modal book filter\n• Page Navigation &amp; Swipe Gestures: 10 verses per page with horizontal swipe gesture navigation\n• Retained Search State: Preserves query, page, and scroll results when returning from the main reader\n• 13 Built-in Bibles: KJV, ABE, ABG, KAN, H/G, HIN, MAL, TEL, TAM, NAS, T4T, LXX, SPA\n• Inline Verse Comparison &amp; Cross References: Tap verses for parallel comparison; 63,000+ TSK cross-references\n• 4 Custom Themes &amp; Gestures: Parchment Warm, Crimson, Teal, and Dark Mode; pinch font scaling &amp; swipe chapter navigation"
+                android:textColor="#444444"
+                android:textSize="11sp" />
+
+            <View
+                android:id="@+id/vAboutDivider3"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:background="#E0E0E0" />
+
+            <!-- 4. Copyrights & Permissions Section -->
+            <TextView
+                android:id="@+id/tvCopyrightHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="Copyrights &amp; Permissions"
+                android:textColor="#1C1B1F"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvCopyrightDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="3dp"
+                android:textColor="#666666"
+                android:textSize="11sp" />
+
+            <View
+                android:id="@+id/vAboutDivider4"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
+                android:background="#E0E0E0" />
+
+            <!-- 5. Footer Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:id="@+id/tvAboutFooterDev"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Developed for Apostolic Reference Bible Study"
+                    android:textColor="#555555"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvAboutFooterCopyright"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="© St. Paul's. All rights reserved."
+                    android:textColor="#777777"
+                    android:textSize="10sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>
