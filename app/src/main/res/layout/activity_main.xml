@@ -109,8 +109,8 @@
                 android:focusable="true"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:paddingStart="6dp"
-                android:paddingEnd="6dp">
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp">
 
                 <TextView
                     android:id="@+id/tvHeaderTitle"
@@ -123,14 +123,6 @@
                     android:maxLines="1"
                     android:ellipsize="end" />
 
-                <ImageView
-                    android:id="@+id/ivHeaderDropdown"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_marginStart="4dp"
-                    android:contentDescription="Select Book and Chapter"
-                    android:src="@android:drawable/arrow_down_float"
-                    app:tint="#1C1B1F" />
             </LinearLayout>
 
         </RelativeLayout>

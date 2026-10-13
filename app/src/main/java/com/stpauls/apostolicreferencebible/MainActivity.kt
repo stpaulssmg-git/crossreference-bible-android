@@ -82,7 +82,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnThemePicker: TextView
     private lateinit var btnOpenSearch: ImageButton
     private lateinit var headerBar: RelativeLayout
-    private lateinit var ivHeaderDropdown: ImageView
     private lateinit var headerDivider: View
     private lateinit var layoutSplashOverlay: RelativeLayout
 
@@ -248,7 +247,6 @@ class MainActivity : AppCompatActivity() {
         btnThemePicker = findViewById(R.id.btnThemePicker)
         btnOpenSearch = findViewById(R.id.btnOpenSearch)
         headerBar = findViewById(R.id.headerBar)
-        ivHeaderDropdown = findViewById(R.id.ivHeaderDropdown)
         headerDivider = findViewById(R.id.headerDivider)
         layoutSplashOverlay = findViewById(R.id.layoutSplashOverlay)
 
@@ -323,7 +321,6 @@ class MainActivity : AppCompatActivity() {
 
         headerBar.setBackgroundColor(Color.parseColor(headerBg))
         tvHeaderTitle.setTextColor(Color.parseColor(headerText))
-        ivHeaderDropdown.setColorFilter(Color.parseColor(headerText))
         btnOpenSearch.setColorFilter(Color.parseColor(headerText))
 
         layoutSplashOverlay.setBackgroundColor(Color.parseColor(headerBg))
