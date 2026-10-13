@@ -25,8 +25,7 @@
         android:text="The LORD possessed me in the beginning of his way..."
         android:textColor="#424242"
         android:textSize="12sp"
-        android:lineSpacingExtra="2dp"
-        android:textDirection="firstStrong" />
+        android:lineSpacingExtra="2dp" />
 
     <View
         android:id="@+id/itemDivider"

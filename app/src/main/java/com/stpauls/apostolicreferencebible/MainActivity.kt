@@ -1450,10 +1450,12 @@ class MainActivity : AppCompatActivity() {
         val isSourceRtl = isRtlText(formattedSourceRef)
         tvSourceVerse?.text = if (isSourceRtl) "\u2067$formattedSourceRef\u2069" else formattedSourceRef
         if (isSourceRtl) {
-            tvSourceVerse?.gravity = Gravity.END
+            tvSourceVerse?.gravity = Gravity.END or Gravity.RIGHT
+            tvSourceVerse?.textAlignment = View.TEXT_ALIGNMENT_VIEW_END
             tvSourceVerse?.textDirection = View.TEXT_DIRECTION_RTL
         } else {
-            tvSourceVerse?.gravity = Gravity.START
+            tvSourceVerse?.gravity = Gravity.START or Gravity.LEFT
+            tvSourceVerse?.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
             tvSourceVerse?.textDirection = View.TEXT_DIRECTION_LTR
         }
 
@@ -1536,9 +1538,11 @@ class MainActivity : AppCompatActivity() {
                     val isRefRtl = isRtlText(localizedRef) || isRtlText(rawRef)
                     if (isRefRtl) {
                         tvReference.gravity = Gravity.END
+                        tvReference.textAlignment = View.TEXT_ALIGNMENT_VIEW_END
                         tvReference.textDirection = View.TEXT_DIRECTION_RTL
                     } else {
                         tvReference.gravity = Gravity.START
+                        tvReference.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
                         tvReference.textDirection = View.TEXT_DIRECTION_LTR
                     }
 
@@ -1590,9 +1594,11 @@ class MainActivity : AppCompatActivity() {
 
                         if (isPrevRtl) {
                             tvPreviewText.gravity = Gravity.END
+                            tvPreviewText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END
                             tvPreviewText.textDirection = View.TEXT_DIRECTION_RTL
                         } else {
                             tvPreviewText.gravity = Gravity.START
+                            tvPreviewText.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
                             tvPreviewText.textDirection = View.TEXT_DIRECTION_LTR
                         }
 
