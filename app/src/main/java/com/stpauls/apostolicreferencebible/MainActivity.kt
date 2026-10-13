@@ -1365,10 +1365,12 @@ class MainActivity : AppCompatActivity() {
         rawRef: String,
         localizedRef: String,
         linkColor: Int,
+        isRtl: Boolean,
         onVerseClick: (verseNum: Int) -> Unit
     ): SpannableStringBuilder {
-        val ssb = SpannableStringBuilder(localizedRef)
-        val colonIdx = localizedRef.indexOf(':')
+        val formattedText = if (isRtl) "\u2067$localizedRef\u2069" else localizedRef
+        val ssb = SpannableStringBuilder(formattedText)
+        val colonIdx = formattedText.indexOf(':')
         val firstVerseNum = rawRef.substringAfter(':', "").split(",", "-").firstOrNull()?.filter { it.isDigit() }?.toIntOrNull() ?: 1
 
         if (colonIdx > 0) {
@@ -1384,7 +1386,7 @@ class MainActivity : AppCompatActivity() {
             ssb.setSpan(prefixSpan, 0, colonIdx + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 
             val digitRegex = Regex("\\b\\d+\\b")
-            val matches = digitRegex.findAll(localizedRef, startIndex = colonIdx + 1)
+            val matches = digitRegex.findAll(formattedText, startIndex = colonIdx + 1)
 
             for (match in matches) {
                 val vNum = match.value.toIntOrNull() ?: continue
@@ -1412,7 +1414,7 @@ class MainActivity : AppCompatActivity() {
                     ds.isUnderlineText = false
                 }
             }
-            ssb.setSpan(wholeSpan, 0, localizedRef.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            ssb.setSpan(wholeSpan, 0, formattedText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
 
         return ssb
@@ -1445,8 +1447,9 @@ class MainActivity : AppCompatActivity() {
         tvSourceVerse?.setTextColor(Color.parseColor(colors.subtitleColor))
 
         val formattedSourceRef = dbHelper.formatLocalizedReference(sourceRef, currentPrimaryTranslation)
-        tvSourceVerse?.text = formattedSourceRef
-        if (isRtlText(formattedSourceRef)) {
+        val isSourceRtl = isRtlText(formattedSourceRef)
+        tvSourceVerse?.text = if (isSourceRtl) "\u2067$formattedSourceRef\u2069" else formattedSourceRef
+        if (isSourceRtl) {
             tvSourceVerse?.gravity = Gravity.END
             tvSourceVerse?.textDirection = View.TEXT_DIRECTION_RTL
         } else {
@@ -1530,7 +1533,8 @@ class MainActivity : AppCompatActivity() {
                     tvReference.setTextSize(TypedValue.COMPLEX_UNIT_SP, refTitleFontSize)
                     itemDivider?.setBackgroundColor(Color.parseColor(colors.dividerColor))
 
-                    if (isRtlText(localizedRef) || isRtlText(rawRef)) {
+                    val isRefRtl = isRtlText(localizedRef) || isRtlText(rawRef)
+                    if (isRefRtl) {
                         tvReference.gravity = Gravity.END
                         tvReference.textDirection = View.TEXT_DIRECTION_RTL
                     } else {
@@ -1542,7 +1546,8 @@ class MainActivity : AppCompatActivity() {
                     tvReference.text = buildInteractiveReferenceSpannable(
                         rawRef = rawRef,
                         localizedRef = localizedRef,
-                        linkColor = refColor
+                        linkColor = refColor,
+                        isRtl = isRefRtl
                     ) { targetVerseNum ->
                         // Save source state for Return Bar
                         activeCrossRefReturnState = CrossRefReturnState(
@@ -1572,15 +1577,18 @@ class MainActivity : AppCompatActivity() {
                         tvPreviewText.setTextColor(Color.parseColor(colors.previewTextColor))
                         tvPreviewText.setTextSize(TypedValue.COMPLEX_UNIT_SP, previewFontSize)
 
+                        val isPrevRtl = isRtlText(preview)
                         val styledPreview = preview.replace("#B71C1C", colors.refTitleColor)
+                        val finalPreviewText = if (isPrevRtl) "\u2067$styledPreview\u2069" else styledPreview
+
                         tvPreviewText.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            Html.fromHtml(styledPreview, Html.FROM_HTML_MODE_LEGACY)
+                            Html.fromHtml(finalPreviewText, Html.FROM_HTML_MODE_LEGACY)
                         } else {
                             @Suppress("DEPRECATION")
-                            Html.fromHtml(styledPreview)
+                            Html.fromHtml(finalPreviewText)
                         }
 
-                        if (isRtlText(preview)) {
+                        if (isPrevRtl) {
                             tvPreviewText.gravity = Gravity.END
                             tvPreviewText.textDirection = View.TEXT_DIRECTION_RTL
                         } else {
