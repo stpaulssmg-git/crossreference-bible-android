@@ -123,7 +123,7 @@ class MainActivity : AppCompatActivity() {
 
     private val themeList = listOf("crimson", "warm", "teal", "dark")
 
-    // Navigation Backstack History for Cross-Reference & Search Study Jumps
+    // Navigation Backstack History for Cross-Reference study jumps
     data class NavState(
         val bookIndex: Int,
         val chapter: Int,
@@ -224,12 +224,23 @@ class MainActivity : AppCompatActivity() {
         return false
     }
 
+    @SuppressLint("MissingPermission")
+    private fun vibrateHaptic() {
+        val vibrator = getSystemService(VIBRATOR_SERVICE) as? Vibrator
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator?.vibrate(VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator?.vibrate(40)
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Register Back Press Callback for Cross-Reference & Search Navigation Stack
+        // Register Back Press Callback for Cross-Reference Study Navigation Stack
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (navHistory.isNotEmpty()) {
@@ -307,8 +318,13 @@ class MainActivity : AppCompatActivity() {
         }
         webView.addJavascriptInterface(CrossReferenceInterface(), "Android")
 
-        // Open About modal on Translation Badge click
+        // Single click opens About modal; Long press opens Quick Primary Translation Selector
         tvActiveTranslationBadge.setOnClickListener { showAboutModal() }
+        tvActiveTranslationBadge.setOnLongClickListener {
+            vibrateHaptic()
+            showQuickPrimarySelectorModal()
+            true
+        }
 
         // Open Book & Chapter selector modal on title click
         btnHeaderTitleContainer.setOnClickListener { showBookPickerModal() }
@@ -324,6 +340,55 @@ class MainActivity : AppCompatActivity() {
 
         // Load initial chapter (Genesis 1)
         loadCurrentChapter()
+    }
+
+    private fun showQuickPrimarySelectorModal() {
+        val bottomSheetDialog = BottomSheetDialog(this)
+        val dialogView = LayoutInflater.from(this).inflate(
+            R.layout.dialog_quick_primary,
+            findViewById(android.R.id.content),
+            false
+        )
+
+        val colors = getModalThemeColors(currentTheme)
+        dialogView.findViewById<View>(R.id.quickPrimaryContainer)?.setBackgroundColor(Color.parseColor(colors.sheetBg))
+        dialogView.findViewById<View>(R.id.vDragHandle)?.setBackgroundColor(Color.parseColor(colors.dragHandleColor))
+        dialogView.findViewById<TextView>(R.id.tvQuickPrimaryTitle)?.setTextColor(Color.parseColor(colors.titleColor))
+        dialogView.findViewById<View>(R.id.vQuickPrimaryDivider)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
+
+        val containerList = dialogView.findViewById<LinearLayout>(R.id.containerQuickPrimaryList)
+        val inflater = LayoutInflater.from(this)
+        containerList?.removeAllViews()
+
+        for (trans in INSTALLED_TRANSLATIONS) {
+            val itemView = inflater.inflate(R.layout.item_quick_primary, containerList, false)
+            val rbQuickPrimary = itemView.findViewById<RadioButton>(R.id.rbQuickPrimary)
+            val tvQuickPrimaryLabel = itemView.findViewById<TextView>(R.id.tvQuickPrimaryLabel)
+
+            val isCurrentPrimary = trans.code.equals(currentPrimaryTranslation, ignoreCase = true)
+            rbQuickPrimary.isChecked = isCurrentPrimary
+            tvQuickPrimaryLabel.setTextColor(Color.parseColor(colors.titleColor))
+            tvQuickPrimaryLabel.text = "${trans.code} - ${trans.name}"
+
+            itemView.setOnClickListener {
+                if (!isCurrentPrimary) {
+                    currentPrimaryTranslation = trans.code
+                    enabledTranslations.add(trans.code)
+                    saveTranslationPreferences()
+                    loadCurrentChapter()
+                    cachedSearchDialog = null
+                    bottomSheetDialog.dismiss()
+                    Toast.makeText(this@MainActivity, "Primary Translation: ${trans.name}", Toast.LENGTH_SHORT).show()
+                } else {
+                    bottomSheetDialog.dismiss()
+                }
+            }
+
+            containerList?.addView(itemView)
+        }
+
+        bottomSheetDialog.setContentView(dialogView)
+        bottomSheetDialog.show()
     }
 
     private fun showOnTheFlyChapterHUD() {
@@ -1450,12 +1515,10 @@ class MainActivity : AppCompatActivity() {
         val isSourceRtl = isRtlText(formattedSourceRef)
         tvSourceVerse?.text = if (isSourceRtl) "\u2067$formattedSourceRef\u2069" else formattedSourceRef
         if (isSourceRtl) {
-            tvSourceVerse?.gravity = Gravity.END or Gravity.RIGHT
-            tvSourceVerse?.textAlignment = View.TEXT_ALIGNMENT_VIEW_END
+            tvSourceVerse?.gravity = Gravity.END
             tvSourceVerse?.textDirection = View.TEXT_DIRECTION_RTL
         } else {
-            tvSourceVerse?.gravity = Gravity.START or Gravity.LEFT
-            tvSourceVerse?.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
+            tvSourceVerse?.gravity = Gravity.START
             tvSourceVerse?.textDirection = View.TEXT_DIRECTION_LTR
         }
 
@@ -1538,11 +1601,9 @@ class MainActivity : AppCompatActivity() {
                     val isRefRtl = isRtlText(localizedRef) || isRtlText(rawRef)
                     if (isRefRtl) {
                         tvReference.gravity = Gravity.END
-                        tvReference.textAlignment = View.TEXT_ALIGNMENT_VIEW_END
                         tvReference.textDirection = View.TEXT_DIRECTION_RTL
                     } else {
                         tvReference.gravity = Gravity.START
-                        tvReference.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
                         tvReference.textDirection = View.TEXT_DIRECTION_LTR
                     }
 
@@ -1594,11 +1655,9 @@ class MainActivity : AppCompatActivity() {
 
                         if (isPrevRtl) {
                             tvPreviewText.gravity = Gravity.END
-                            tvPreviewText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END
                             tvPreviewText.textDirection = View.TEXT_DIRECTION_RTL
                         } else {
                             tvPreviewText.gravity = Gravity.START
-                            tvPreviewText.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
                             tvPreviewText.textDirection = View.TEXT_DIRECTION_LTR
                         }
 
