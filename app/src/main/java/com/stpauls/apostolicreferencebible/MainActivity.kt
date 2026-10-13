@@ -202,7 +202,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun isRtlText(text: String): Boolean {
+        if (text.isBlank()) return false
         for (char in text) {
+            val code = char.code
+            // Hebrew block: 0x0590 - 0x05FF, Hebrew Presentation Forms: 0xFB1D - 0xFB4F
+            // Arabic block: 0x0600 - 0x06FF, 0x0750 - 0x077F, 0x08A0 - 0x08FF, 0xFB50 - 0xFDFF, 0xFE70 - 0xFEFF
+            if ((code in 0x0590..0x05FF) || (code in 0xFB1D..0xFB4F) ||
+                (code in 0x0600..0x06FF) || (code in 0x0750..0x077F) || (code in 0x08A0..0x08FF) ||
+                (code in 0xFB50..0xFDFF) || (code in 0xFE70..0xFEFF)) {
+                return true
+            }
             val directionality = Character.getDirectionality(char)
             if (directionality == Character.DIRECTIONALITY_RIGHT_TO_LEFT ||
                 directionality == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC) {
@@ -1424,7 +1433,15 @@ class MainActivity : AppCompatActivity() {
         tvTitle?.setTextColor(Color.parseColor(colors.titleColor))
         tvTitle?.text = "Cross References for \"$anchor\""
         tvSourceVerse?.setTextColor(Color.parseColor(colors.subtitleColor))
-        tvSourceVerse?.text = dbHelper.formatLocalizedReference(sourceRef, currentPrimaryTranslation)
+        val formattedSourceRef = dbHelper.formatLocalizedReference(sourceRef, currentPrimaryTranslation)
+        tvSourceVerse?.text = formattedSourceRef
+        if (isRtlText(formattedSourceRef)) {
+            tvSourceVerse?.gravity = Gravity.END
+            tvSourceVerse?.textDirection = View.TEXT_DIRECTION_RTL
+        } else {
+            tvSourceVerse?.gravity = Gravity.START
+            tvSourceVerse?.textDirection = View.TEXT_DIRECTION_LTR
+        }
         vDivider?.setBackgroundColor(Color.parseColor(colors.dividerColor))
 
         // Extract source verse number to push onto navigation stack when user jumps to a cross reference
@@ -1500,6 +1517,14 @@ class MainActivity : AppCompatActivity() {
                     tvReference.movementMethod = LinkMovementMethod.getInstance()
                     tvReference.setTextSize(TypedValue.COMPLEX_UNIT_SP, refTitleFontSize)
                     itemDivider?.setBackgroundColor(Color.parseColor(colors.dividerColor))
+
+                    if (isRtlText(localizedRef) || isRtlText(rawRef)) {
+                        tvReference.gravity = Gravity.END
+                        tvReference.textDirection = View.TEXT_DIRECTION_RTL
+                    } else {
+                        tvReference.gravity = Gravity.START
+                        tvReference.textDirection = View.TEXT_DIRECTION_LTR
+                    }
 
                     // Build interactive title where clicking individual verse numbers jumps to that specific verse
                     tvReference.text = buildInteractiveReferenceSpannable(
