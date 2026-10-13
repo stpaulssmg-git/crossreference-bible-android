@@ -252,20 +252,9 @@ val HGB_BOOK_NAME_MAP = mapOf(
     "2PE" to "Πέτρου Β΄", "1JO" to "Ἰωάννου Α΄", "1JN" to "Ἰωάννου Α΄", "2JO" to "Ἰωάννου Β΄", "2JN" to "Ἰωάννου Β΄", "3JO" to "Ἰωάννου Γ΄", "3JN" to "Ἰωάννου Γ΄", "JUD" to "Ἰούδα", "REV" to "Ἀποκάλυψις Ἰωάννου"
 )
 
-private fun isRtlString(text: String): Boolean {
-    for (char in text) {
-        val directionality = Character.getDirectionality(char)
-        if (directionality == Character.DIRECTIONALITY_RIGHT_TO_LEFT ||
-            directionality == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC) {
-            return true
-        }
-    }
-    return false
-}
-
 fun getLocalizedBookName(bookCode: String, primaryTranslationCode: String): String {
     val code = primaryTranslationCode.uppercase()
-    val name = when (code) {
+    return when (code) {
         "KAN" -> KAN_BOOK_NAME_MAP[bookCode] ?: BOOK_NAME_MAP[bookCode] ?: bookCode
         "TEL" -> TEL_BOOK_NAME_MAP[bookCode] ?: BOOK_NAME_MAP[bookCode] ?: bookCode
         "MAL" -> MAL_BOOK_NAME_MAP[bookCode] ?: BOOK_NAME_MAP[bookCode] ?: bookCode
@@ -275,5 +264,4 @@ fun getLocalizedBookName(bookCode: String, primaryTranslationCode: String): Stri
         "H/G", "HGB" -> HGB_BOOK_NAME_MAP[bookCode] ?: BOOK_NAME_MAP[bookCode] ?: bookCode
         else -> BOOK_NAME_MAP[bookCode] ?: bookCode
     }
-    return if (isRtlString(name)) "$name\u200E " else name
 }
