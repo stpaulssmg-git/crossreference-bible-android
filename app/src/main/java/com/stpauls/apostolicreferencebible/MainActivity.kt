@@ -32,6 +32,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -60,6 +61,7 @@ class MainActivity : AppCompatActivity() {
         private const val PREFS_NAME = "bible_app_prefs"
         private const val KEY_THEME = "selected_theme"
         private const val KEY_FONT_SIZE = "selected_font_size"
+        private const val KEY_FONT_FAMILY = "selected_font_family"
         private const val KEY_PRIMARY_TRANS = "primary_translation"
         private const val KEY_ENABLED_TRANS = "enabled_translations"
     }
@@ -68,6 +70,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvHeaderTitle: TextView
     private lateinit var btnHeaderTitleContainer: LinearLayout
     private lateinit var tvActiveTranslationBadge: TextView
+    private lateinit var btnFontPicker: TextView
     private lateinit var btnThemePicker: TextView
     private lateinit var btnOpenSearch: ImageButton
     private lateinit var headerBar: RelativeLayout
@@ -83,6 +86,7 @@ class MainActivity : AppCompatActivity() {
     private var currentChapter = 1
     private var currentTheme = "warm" // Options: "warm", "crimson", "teal", "dark"
     private var currentFontSize = 14f // Lowest initial zoom level by default
+    private var currentFontFamily = "sans" // Options: "sans", "serif", "mono", "rounded"
 
     private var currentPrimaryTranslation = "KJV"
     private var enabledTranslations = mutableSetOf("KJV", "ABE")
@@ -183,6 +187,7 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         currentTheme = prefs.getString(KEY_THEME, "warm") ?: "warm"
         currentFontSize = prefs.getFloat(KEY_FONT_SIZE, 14f)
+        currentFontFamily = prefs.getString(KEY_FONT_FAMILY, "sans") ?: "sans"
         currentPrimaryTranslation = prefs.getString(KEY_PRIMARY_TRANS, "KJV") ?: "KJV"
         enabledTranslations = prefs.getStringSet(KEY_ENABLED_TRANS, setOf("KJV", "ABE"))?.toMutableSet() ?: mutableSetOf("KJV", "ABE")
 
@@ -195,6 +200,7 @@ class MainActivity : AppCompatActivity() {
         tvHeaderTitle = findViewById(R.id.tvHeaderTitle)
         btnHeaderTitleContainer = findViewById(R.id.btnHeaderTitleContainer)
         tvActiveTranslationBadge = findViewById(R.id.tvActiveTranslationBadge)
+        btnFontPicker = findViewById(R.id.btnFontPicker)
         btnThemePicker = findViewById(R.id.btnThemePicker)
         btnOpenSearch = findViewById(R.id.btnOpenSearch)
         headerBar = findViewById(R.id.headerBar)
@@ -220,6 +226,9 @@ class MainActivity : AppCompatActivity() {
 
         // Open Search modal on search button click
         btnOpenSearch.setOnClickListener { showSearchModal() }
+
+        // Open Font Picker modal on 'Aa' click
+        btnFontPicker.setOnClickListener { showFontPickerModal() }
 
         // Cycle through themes on single click
         btnThemePicker.setOnClickListener { cycleNextTheme() }
@@ -255,6 +264,10 @@ class MainActivity : AppCompatActivity() {
         layoutSplashOverlay.setBackgroundColor(Color.parseColor(headerBg))
         findViewById<TextView>(R.id.tvSplashTitle)?.setTextColor(Color.parseColor(headerText))
 
+        btnFontPicker.setTextColor(Color.parseColor(headerText))
+        @Suppress("DEPRECATION")
+        btnFontPicker.background?.setColorFilter(Color.parseColor(headerText), PorterDuff.Mode.SRC_IN)
+
         btnThemePicker.text = themeName.first().uppercase()
         btnThemePicker.setTextColor(Color.parseColor(headerText))
         @Suppress("DEPRECATION")
@@ -284,6 +297,62 @@ class MainActivity : AppCompatActivity() {
 
         // Dynamically update theme in WebView
         webView.evaluateJavascript("setTheme('$newTheme')", null)
+    }
+
+    private fun showFontPickerModal() {
+        val bottomSheetDialog = BottomSheetDialog(this)
+        val dialogView = LayoutInflater.from(this).inflate(
+            R.layout.dialog_font_picker,
+            findViewById(android.R.id.content),
+            false
+        )
+
+        val colors = getModalThemeColors(currentTheme)
+        dialogView.findViewById<View>(R.id.fontPickerContainer)?.setBackgroundColor(Color.parseColor(colors.sheetBg))
+        dialogView.findViewById<View>(R.id.vDragHandle)?.setBackgroundColor(Color.parseColor(colors.dragHandleColor))
+        dialogView.findViewById<TextView>(R.id.tvFontPickerTitle)?.setTextColor(Color.parseColor(colors.titleColor))
+        dialogView.findViewById<View>(R.id.vFontDivider)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
+
+        val rbSans = dialogView.findViewById<RadioButton>(R.id.rbFontSans)
+        val rbSerif = dialogView.findViewById<RadioButton>(R.id.rbFontSerif)
+        val rbMono = dialogView.findViewById<RadioButton>(R.id.rbFontMono)
+        val rbRounded = dialogView.findViewById<RadioButton>(R.id.rbFontRounded)
+
+        rbSans.setTextColor(Color.parseColor(colors.titleColor))
+        rbSerif.setTextColor(Color.parseColor(colors.titleColor))
+        rbMono.setTextColor(Color.parseColor(colors.titleColor))
+        rbRounded.setTextColor(Color.parseColor(colors.titleColor))
+
+        when (currentFontFamily) {
+            "serif" -> rbSerif.isChecked = true
+            "mono" -> rbMono.isChecked = true
+            "rounded" -> rbRounded.isChecked = true
+            else -> rbSans.isChecked = true
+        }
+
+        val rgFontGroup = dialogView.findViewById<RadioGroup>(R.id.rgFontGroup)
+        rgFontGroup.setOnCheckedChangeListener { _, checkedId ->
+            val newFont = when (checkedId) {
+                R.id.rbFontSerif -> "serif"
+                R.id.rbFontMono -> "mono"
+                R.id.rbFontRounded -> "rounded"
+                else -> "sans"
+            }
+
+            if (newFont != currentFontFamily) {
+                currentFontFamily = newFont
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                    .edit()
+                    .putString(KEY_FONT_FAMILY, newFont)
+                    .apply()
+
+                webView.evaluateJavascript("setFontFamily('$newFont')", null)
+                bottomSheetDialog.dismiss()
+            }
+        }
+
+        bottomSheetDialog.setContentView(dialogView)
+        bottomSheetDialog.show()
     }
 
     private fun loadCurrentChapter(targetVerseNum: Int? = null) {
@@ -323,12 +392,13 @@ class MainActivity : AppCompatActivity() {
                     dbHelper.getSecondaryVersesForChapter(activeSecondary, bookInfo.code, currentChapter, primaryVerseNumbers)
                 } else emptyMap()
 
-                // Generate HTML with anchor word highlighting ONLY for KJV, inline secondary verses, active theme, and saved font size
+                // Generate HTML with anchor word highlighting ONLY for KJV, inline secondary verses, active theme, active font family, and saved font size
                 val htmlContent = htmlEngine.generateChapterHtml(
                     verses = verses,
                     crossRefs = crossRefs,
                     secondaryVersesMap = secondaryVersesMap,
                     themeName = currentTheme,
+                    fontFamily = currentFontFamily,
                     fontSize = currentFontSize,
                     primaryTranslationCode = currentPrimaryTranslation
                 )

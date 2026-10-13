@@ -38,6 +38,7 @@ class HtmlEngine(private val context: Context) {
         crossRefs: List<CrossReference>,
         secondaryVersesMap: Map<Int, List<TranslationVerse>> = emptyMap(),
         themeName: String = "warm",
+        fontFamily: String = "sans",
         fontSize: Float = 14f,
         primaryTranslationCode: String = "KJV"
     ): String {
@@ -115,7 +116,7 @@ class HtmlEngine(private val context: Context) {
         val formattedFontSize = String.format(Locale.US, "%.1f", fontSize)
 
         return templateHtml
-            .replace("class=\"theme-warm\"", "class=\"theme-$themeName\" style=\"font-size: ${formattedFontSize}px;\"")
+            .replace("class=\"theme-warm font-sans\"", "class=\"theme-$themeName font-$fontFamily\" style=\"font-size: ${formattedFontSize}px;\"")
             .replace("<!-- BIBLE_CONTENT_PLACEHOLDER -->", sb.toString())
     }
 

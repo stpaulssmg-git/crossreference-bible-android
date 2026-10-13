@@ -48,7 +48,7 @@
 
             </LinearLayout>
 
-            <!-- Right Container: Search Button & Theme Letter Chip -->
+            <!-- Right Container: Search Button, Font Selector & Theme Letter Chip -->
             <LinearLayout
                 android:id="@+id/rightHeaderContainer"
                 android:layout_width="wrap_content"
@@ -66,6 +66,20 @@
                     android:contentDescription="Open Search"
                     android:src="@android:drawable/ic_menu_search"
                     app:tint="#1C1B1F" />
+
+                <TextView
+                    android:id="@+id/btnFontPicker"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_theme_letter_chip"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="Aa"
+                    android:textColor="#1C1B1F"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/btnThemePicker"

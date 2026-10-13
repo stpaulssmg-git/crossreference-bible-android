@@ -25,6 +25,20 @@
             transition: background-color 0.25s ease, color 0.25s ease;
         }
 
+        /* --- FONT FAMILY CLASSES --- */
+        body.font-sans {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body.font-serif {
+            font-family: Georgia, "Times New Roman", Garamond, serif;
+        }
+        body.font-mono {
+            font-family: Consolas, "Courier New", Courier, monospace;
+        }
+        body.font-rounded {
+            font-family: "Trebuchet MS", "Nunito", sans-serif;
+        }
+
         /* --- THEME 1: WARM (PARCHMENT) --- */
         body.theme-warm {
             background-color: #FBF9F5;
@@ -224,14 +238,22 @@
         }
     </style>
 </head>
-<body class="theme-warm">
+<body class="theme-warm font-sans">
     <div id="content">
         <!-- BIBLE_CONTENT_PLACEHOLDER -->
     </div>
 
     <script>
         function setTheme(themeName) {
-            document.body.className = 'theme-' + themeName;
+            let currentClasses = document.body.className.split(' ');
+            let fontClass = currentClasses.find(c => c.startsWith('font-')) || 'font-sans';
+            document.body.className = 'theme-' + themeName + ' ' + fontClass;
+        }
+
+        function setFontFamily(fontName) {
+            let currentClasses = document.body.className.split(' ');
+            let themeClass = currentClasses.find(c => c.startsWith('theme-')) || 'theme-warm';
+            document.body.className = themeClass + ' font-' + fontName;
         }
 
         function toggleCompare(verseId, event) {
