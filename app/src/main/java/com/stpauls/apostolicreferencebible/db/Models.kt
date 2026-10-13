@@ -54,15 +54,15 @@ val INSTALLED_TRANSLATIONS = listOf(
     TranslationInfo("KJV", "King James Version", "kjv.db", isPrimary = true, isEnabled = true),
     TranslationInfo("ABE", "Apostolic Polyglot (English)", "abe.db", isPrimary = false, isEnabled = true),
     TranslationInfo("ABG", "Apostolic Polyglot (Greek)", "abg.db", isPrimary = false, isEnabled = true),
-    TranslationInfo("KAN", "Kannada IRV Bible", "kan.db", isPrimary = false, isEnabled = true),
+    TranslationInfo("LXX", "Thomson Septuagint (English)", "lxx.db", isPrimary = false, isEnabled = false),
     TranslationInfo("H/G", "Hebrew OT / Greek TR NT", "hgb.db", isPrimary = false, isEnabled = false),
-    TranslationInfo("HIN", "Hindi IRV Bible", "hin.db", isPrimary = false, isEnabled = false),
-    TranslationInfo("MAL", "Malayalam IRV Bible", "mal.db", isPrimary = false, isEnabled = false),
+    TranslationInfo("T4T", "Translation for Translators", "t4t.db", isPrimary = false, isEnabled = false),
+    TranslationInfo("NAS", "NASB (English)", "nas.db", isPrimary = false, isEnabled = false),
+    TranslationInfo("KAN", "Kannada IRV Bible", "kan.db", isPrimary = false, isEnabled = true),
     TranslationInfo("TEL", "Telugu IRV Bible", "tel.db", isPrimary = false, isEnabled = false),
     TranslationInfo("TAM", "Tamil IRV Bible", "tam.db", isPrimary = false, isEnabled = false),
-    TranslationInfo("NAS", "NASB (English)", "nas.db", isPrimary = false, isEnabled = false),
-    TranslationInfo("T4T", "Translation for Translators", "t4t.db", isPrimary = false, isEnabled = false),
-    TranslationInfo("LXX", "Thomson Septuagint (English)", "lxx.db", isPrimary = false, isEnabled = false),
+    TranslationInfo("MAL", "Malayalam IRV Bible", "mal.db", isPrimary = false, isEnabled = false),
+    TranslationInfo("HIN", "Hindi IRV Bible", "hin.db", isPrimary = false, isEnabled = false),
     TranslationInfo("SPA", "Spanish Reina Valera Gomez", "spa.db", isPrimary = false, isEnabled = false)
 )
 
