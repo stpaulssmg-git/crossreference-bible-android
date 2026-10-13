@@ -22,33 +22,35 @@
             android:paddingStart="12dp"
             android:paddingEnd="12dp">
 
-            <!-- Left Container: Circular 32dp Active Translation Badge -->
+            <!-- Left Container: Clickable Book & Chapter Title -->
             <LinearLayout
-                android:id="@+id/leftHeaderContainer"
+                android:id="@+id/btnHeaderTitleContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/rightHeaderContainer"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="4dp"
+                android:paddingEnd="8dp">
 
                 <TextView
-                    android:id="@+id/tvActiveTranslationBadge"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="@drawable/bg_theme_letter_chip"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:text="KJV"
+                    android:id="@+id/tvHeaderTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Genesis 1"
                     android:textColor="#1C1B1F"
-                    android:textSize="9.5sp"
+                    android:textSize="15sp"
                     android:textStyle="bold"
-                    android:singleLine="true"
-                    android:ellipsize="none" />
+                    android:maxLines="1"
+                    android:ellipsize="end" />
 
             </LinearLayout>
 
-            <!-- Right Container: Search Button & Theme Letter Chip -->
+            <!-- Right Container: Search Button, Circular Translation Badge & Theme Chip -->
             <LinearLayout
                 android:id="@+id/rightHeaderContainer"
                 android:layout_width="wrap_content"
@@ -68,6 +70,22 @@
                     app:tint="#1C1B1F" />
 
                 <TextView
+                    android:id="@+id/tvActiveTranslationBadge"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_theme_letter_chip"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="KJV"
+                    android:textColor="#1C1B1F"
+                    android:textSize="9.5sp"
+                    android:textStyle="bold"
+                    android:singleLine="true"
+                    android:ellipsize="none" />
+
+                <TextView
                     android:id="@+id/btnThemePicker"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
@@ -79,35 +97,6 @@
                     android:textColor="#1C1B1F"
                     android:textSize="16sp"
                     android:textStyle="bold" />
-
-            </LinearLayout>
-
-            <!-- Clickable Book & Chapter Title Container -->
-            <LinearLayout
-                android:id="@+id/btnHeaderTitleContainer"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_toEndOf="@id/leftHeaderContainer"
-                android:layout_toStartOf="@id/rightHeaderContainer"
-                android:layout_centerInParent="true"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp">
-
-                <TextView
-                    android:id="@+id/tvHeaderTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Genesis 1"
-                    android:textColor="#1C1B1F"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:maxLines="1"
-                    android:ellipsize="end" />
 
             </LinearLayout>
 
