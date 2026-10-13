@@ -36,6 +36,7 @@ import android.widget.RadioGroup
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.widget.NestedScrollView
@@ -92,6 +93,10 @@ class MainActivity : AppCompatActivity() {
     private var enabledTranslations = mutableSetOf("KJV", "ABE")
 
     private val themeList = listOf("warm", "crimson", "teal", "dark")
+
+    // Navigation Backstack History for Cross-Reference study jumps
+    data class NavState(val bookIndex: Int, val chapter: Int, val verse: Int)
+    private val navHistory = mutableListOf<NavState>()
 
     // Retain search dialog instance to preserve query and scroll results when returning from main reader
     private var cachedSearchDialog: Dialog? = null
@@ -182,6 +187,22 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Register Back Press Callback for Cross-Reference Study Navigation Stack
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (navHistory.isNotEmpty()) {
+                    val previousState = navHistory.removeAt(navHistory.lastIndex)
+                    currentBookIndex = previousState.bookIndex
+                    currentChapter = previousState.chapter
+                    loadCurrentChapter(targetVerseNum = previousState.verse)
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                    isEnabled = true
+                }
+            }
+        })
 
         // Load saved preferences with KJV as primary and ABE as compare by default on first install
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
@@ -1240,6 +1261,9 @@ class MainActivity : AppCompatActivity() {
         tvSourceVerse?.text = dbHelper.formatLocalizedReference(sourceRef, currentPrimaryTranslation)
         vDivider?.setBackgroundColor(Color.parseColor(colors.dividerColor))
 
+        // Extract source verse number to push onto navigation stack when user jumps to a cross reference
+        val sourceVerseNum = sourceRef.substringAfterLast(':').filter { it.isDigit() }.toIntOrNull() ?: 1
+
         // Pinch-to-zoom scaling for Cross Reference preview items
         var dynamicXrefFontSize = currentFontSize
 
@@ -1299,7 +1323,7 @@ class MainActivity : AppCompatActivity() {
 
             runOnUiThread {
                 val inflater = LayoutInflater.from(this@MainActivity)
-                for ((_, localizedRef, preview) in itemDetails) {
+                for ((rawRef, localizedRef, preview) in itemDetails) {
                     val itemView = inflater.inflate(R.layout.item_cross_ref, containerXrefs, false)
                     val tvReference = itemView.findViewById<TextView>(R.id.tvReference)
                     val tvPreviewText = itemView.findViewById<TextView>(R.id.tvPreviewText)
@@ -1309,6 +1333,19 @@ class MainActivity : AppCompatActivity() {
                     tvReference.text = localizedRef
                     tvReference.setTextSize(TypedValue.COMPLEX_UNIT_SP, refTitleFontSize)
                     itemDivider?.setBackgroundColor(Color.parseColor(colors.dividerColor))
+
+                    // Allow tapping cross-reference title to jump directly to target verse and save current verse in navigation stack
+                    tvReference.setOnClickListener {
+                        val jumps = dbHelper.parseDirectReferences(rawRef, currentPrimaryTranslation)
+                        if (jumps.isNotEmpty()) {
+                            val targetJump = jumps.first()
+                            navHistory.add(NavState(currentBookIndex, currentChapter, sourceVerseNum))
+                            currentBookIndex = targetJump.bookIndex
+                            currentChapter = targetJump.chapter
+                            loadCurrentChapter(targetVerseNum = targetJump.verse)
+                            bottomSheetDialog.dismiss()
+                        }
+                    }
 
                     if (!preview.isNullOrBlank()) {
                         tvPreviewText.setTextColor(Color.parseColor(colors.previewTextColor))
