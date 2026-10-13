@@ -7,6 +7,8 @@ import android.graphics.PorterDuff
 import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.text.Editable
@@ -83,6 +85,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var headerBar: RelativeLayout
     private lateinit var headerDivider: View
     private lateinit var layoutSplashOverlay: RelativeLayout
+
+    // On-the-Fly Chapter Swipe HUD Overlay Elements
+    private lateinit var cardChapterSwipeHUD: CardView
+    private lateinit var tvChapterSwipeHUDText: TextView
+    private var hudRunnable: Runnable? = null
+    private val hudHandler = Handler(Looper.getMainLooper())
 
     // Floating Cross-Reference Return Navigation Bar Elements
     private lateinit var cardCrossRefReturnBar: CardView
@@ -248,6 +256,10 @@ class MainActivity : AppCompatActivity() {
         headerDivider = findViewById(R.id.headerDivider)
         layoutSplashOverlay = findViewById(R.id.layoutSplashOverlay)
 
+        // Chapter Swipe HUD Overlay Views
+        cardChapterSwipeHUD = findViewById(R.id.cardChapterSwipeHUD)
+        tvChapterSwipeHUDText = findViewById(R.id.tvChapterSwipeHUDText)
+
         // Floating Cross Reference Return Bar
         cardCrossRefReturnBar = findViewById(R.id.cardCrossRefReturnBar)
         btnReturnToCrossRef = findViewById(R.id.btnReturnToCrossRef)
@@ -298,6 +310,24 @@ class MainActivity : AppCompatActivity() {
         loadCurrentChapter()
     }
 
+    private fun showOnTheFlyChapterHUD() {
+        val bookInfo = BIBLE_BOOKS[currentBookIndex]
+        val localizedBookName = getLocalizedBookName(bookInfo.code, currentPrimaryTranslation)
+        tvChapterSwipeHUDText.text = "$localizedBookName $currentChapter"
+
+        hudRunnable?.let { hudHandler.removeCallbacks(it) }
+        cardChapterSwipeHUD.animate().cancel()
+        cardChapterSwipeHUD.alpha = 1.0f
+        cardChapterSwipeHUD.visibility = View.VISIBLE
+
+        hudRunnable = Runnable {
+            cardChapterSwipeHUD.animate().alpha(0f).setDuration(350).withEndAction {
+                cardChapterSwipeHUD.visibility = View.GONE
+            }
+        }
+        hudHandler.postDelayed(hudRunnable!!, 1100)
+    }
+
     private fun cycleNextTheme() {
         val currentIndex = themeList.indexOf(currentTheme)
         val nextIndex = if (currentIndex >= 0) (currentIndex + 1) % themeList.size else 0
@@ -331,6 +361,14 @@ class MainActivity : AppCompatActivity() {
         btnThemePicker.background?.setColorFilter(Color.parseColor(headerText), PorterDuff.Mode.SRC_IN)
 
         headerDivider.setBackgroundColor(Color.parseColor(dividerBg))
+
+        val hudBg = when (themeName) {
+            "crimson" -> "#3E1014"
+            "teal" -> "#00363A"
+            "dark" -> "#2A2A2A"
+            else -> "#1C1B1F"
+        }
+        cardChapterSwipeHUD.setCardBackgroundColor(Color.parseColor(hudBg))
 
         val returnBarBg = when (themeName) {
             "crimson" -> "#8B0000"
@@ -1175,10 +1213,12 @@ class MainActivity : AppCompatActivity() {
         if (currentChapter < bookInfo.totalChapters) {
             currentChapter++
             loadCurrentChapter()
+            showOnTheFlyChapterHUD()
         } else if (currentBookIndex < BIBLE_BOOKS.size - 1) {
             currentBookIndex++
             currentChapter = 1
             loadCurrentChapter()
+            showOnTheFlyChapterHUD()
         } else {
             Toast.makeText(this, "Reached the end of Revelation", Toast.LENGTH_SHORT).show()
         }
@@ -1188,10 +1228,12 @@ class MainActivity : AppCompatActivity() {
         if (currentChapter > 1) {
             currentChapter--
             loadCurrentChapter()
+            showOnTheFlyChapterHUD()
         } else if (currentBookIndex > 0) {
             currentBookIndex--
             currentChapter = BIBLE_BOOKS[currentBookIndex].totalChapters
             loadCurrentChapter()
+            showOnTheFlyChapterHUD()
         } else {
             Toast.makeText(this, "Reached the beginning of Genesis", Toast.LENGTH_SHORT).show()
         }
