@@ -128,28 +128,30 @@
         android:layout_height="match_parent"
         android:layout_below="@id/topHeaderLayout" />
 
-    <!-- On-the-Fly Centered Chapter Swipe HUD Overlay -->
+    <!-- On-the-Fly Top Chapter Swipe HUD Overlay -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardChapterSwipeHUD"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_below="@id/topHeaderLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
         android:visibility="gone"
         app:cardCornerRadius="20dp"
-        app:cardElevation="8dp"
-        app:cardBackgroundColor="#1C1B1F">
+        app:cardElevation="10dp"
+        app:cardBackgroundColor="#3E1014">
 
         <TextView
             android:id="@+id/tvChapterSwipeHUDText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingStart="24dp"
-            android:paddingTop="12dp"
+            android:paddingTop="10dp"
             android:paddingEnd="24dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="10dp"
             android:text="Genesis 2"
             android:textColor="#FFFFFF"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
     </androidx.cardview.widget.CardView>

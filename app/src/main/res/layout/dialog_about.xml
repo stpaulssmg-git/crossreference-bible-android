@@ -204,46 +204,49 @@
                 android:id="@+id/rgAboutFontGroup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
+                android:orientation="vertical"
                 android:paddingTop="2dp"
                 android:paddingBottom="6dp">
 
                 <RadioButton
                     android:id="@+id/rbAboutFontSans"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Sans"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:text="Sans-Serif (Modern / Clean)"
                     android:textColor="#1C1B1F"
-                    android:textSize="11sp" />
+                    android:textSize="12sp" />
 
                 <RadioButton
                     android:id="@+id/rbAboutFontSerif"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Serif"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:text="Serif (Georgia / Literary Book Style)"
                     android:textColor="#1C1B1F"
-                    android:textSize="11sp" />
+                    android:textSize="12sp" />
 
                 <RadioButton
                     android:id="@+id/rbAboutFontMono"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Mono"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:text="Monospace (Fixed Pitch)"
                     android:textColor="#1C1B1F"
-                    android:textSize="11sp" />
+                    android:textSize="12sp" />
 
                 <RadioButton
                     android:id="@+id/rbAboutFontRounded"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Rounded"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:text="Rounded (Casual / Trebuchet)"
                     android:textColor="#1C1B1F"
-                    android:textSize="11sp" />
+                    android:textSize="12sp" />
 
             </RadioGroup>
 

@@ -114,7 +114,7 @@ class MainActivity : AppCompatActivity() {
 
     private var currentBookIndex = 0
     private var currentChapter = 1
-    private var currentTheme = "warm" // Options: "warm", "crimson", "teal", "dark"
+    private var currentTheme = "crimson" // Options: "warm", "crimson", "teal", "dark"
     private var currentFontSize = 14f // Lowest initial zoom level by default
     private var currentFontFamily = "sans" // Options: "sans", "serif", "mono", "rounded"
 
@@ -235,7 +235,7 @@ class MainActivity : AppCompatActivity() {
 
         // Load saved preferences with KJV as primary and ABE as compare by default on first install
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        currentTheme = prefs.getString(KEY_THEME, "warm") ?: "warm"
+        currentTheme = prefs.getString(KEY_THEME, "crimson") ?: "crimson"
         currentFontSize = prefs.getFloat(KEY_FONT_SIZE, 14f)
         currentFontFamily = prefs.getString(KEY_FONT_FAMILY, "sans") ?: "sans"
         currentPrimaryTranslation = prefs.getString(KEY_PRIMARY_TRANS, "KJV") ?: "KJV"
@@ -362,13 +362,14 @@ class MainActivity : AppCompatActivity() {
 
         headerDivider.setBackgroundColor(Color.parseColor(dividerBg))
 
-        val hudBg = when (themeName) {
-            "crimson" -> "#3E1014"
-            "teal" -> "#00363A"
-            "dark" -> "#2A2A2A"
-            else -> "#1C1B1F"
+        val (hudBg, hudText) = when (themeName) {
+            "crimson" -> Pair("#8B0000", "#FFFFFF")
+            "teal" -> Pair("#005F60", "#FFFFFF")
+            "dark" -> Pair("#2A2A2A", "#EF5350")
+            else -> Pair("#1565C0", "#FFFFFF")
         }
         cardChapterSwipeHUD.setCardBackgroundColor(Color.parseColor(hudBg))
+        tvChapterSwipeHUDText.setTextColor(Color.parseColor(hudText))
 
         val returnBarBg = when (themeName) {
             "crimson" -> "#8B0000"
