@@ -80,7 +80,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- 1. Manage Translations Section (Collapsible - Collapsed by Default) -->
+            <!-- 1. Manage Translations Section (Collapsible - Default Expanded) -->
             <LinearLayout
                 android:id="@+id/btnToggleManageTranslations"
                 android:layout_width="match_parent"
@@ -113,13 +113,13 @@
 
             </LinearLayout>
 
-            <!-- Collapsible Content Container (Default Collapsed) -->
+            <!-- Collapsible Content Container -->
             <LinearLayout
                 android:id="@+id/layoutManageTranslationsContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="gone">
+                android:visibility="visible">
 
                 <!-- Single Table Column Header -->
                 <LinearLayout
@@ -186,6 +186,72 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:background="#E0E0E0" />
+
+            <!-- Font Family Selector Section (Placed after Manage Translations) -->
+            <TextView
+                android:id="@+id/tvFontSectionHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="Reader Font Style"
+                android:textColor="#1C1B1F"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <RadioGroup
+                android:id="@+id/rgAboutFontGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="2dp"
+                android:paddingBottom="6dp">
+
+                <RadioButton
+                    android:id="@+id/rbAboutFontSans"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Sans"
+                    android:textColor="#1C1B1F"
+                    android:textSize="11sp" />
+
+                <RadioButton
+                    android:id="@+id/rbAboutFontSerif"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Serif"
+                    android:textColor="#1C1B1F"
+                    android:textSize="11sp" />
+
+                <RadioButton
+                    android:id="@+id/rbAboutFontMono"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Mono"
+                    android:textColor="#1C1B1F"
+                    android:textSize="11sp" />
+
+                <RadioButton
+                    android:id="@+id/rbAboutFontRounded"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Rounded"
+                    android:textColor="#1C1B1F"
+                    android:textSize="11sp" />
+
+            </RadioGroup>
+
+            <View
+                android:id="@+id/vAboutDividerFont"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="6dp"
                 android:layout_marginBottom="10dp"
                 android:background="#E0E0E0" />
 

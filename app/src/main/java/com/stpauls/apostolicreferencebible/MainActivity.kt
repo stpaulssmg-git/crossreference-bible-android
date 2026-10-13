@@ -78,7 +78,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvHeaderTitle: TextView
     private lateinit var btnHeaderTitleContainer: LinearLayout
     private lateinit var tvActiveTranslationBadge: TextView
-    private lateinit var btnFontPicker: TextView
     private lateinit var btnThemePicker: TextView
     private lateinit var btnOpenSearch: ImageButton
     private lateinit var headerBar: RelativeLayout
@@ -243,7 +242,6 @@ class MainActivity : AppCompatActivity() {
         tvHeaderTitle = findViewById(R.id.tvHeaderTitle)
         btnHeaderTitleContainer = findViewById(R.id.btnHeaderTitleContainer)
         tvActiveTranslationBadge = findViewById(R.id.tvActiveTranslationBadge)
-        btnFontPicker = findViewById(R.id.btnFontPicker)
         btnThemePicker = findViewById(R.id.btnThemePicker)
         btnOpenSearch = findViewById(R.id.btnOpenSearch)
         headerBar = findViewById(R.id.headerBar)
@@ -290,9 +288,6 @@ class MainActivity : AppCompatActivity() {
         // Open Search modal on search button click
         btnOpenSearch.setOnClickListener { showSearchModal() }
 
-        // Open Font Picker modal on 'Aa' click
-        btnFontPicker.setOnClickListener { showFontPickerModal() }
-
         // Cycle through themes on single click
         btnThemePicker.setOnClickListener { cycleNextTheme() }
 
@@ -323,12 +318,12 @@ class MainActivity : AppCompatActivity() {
         tvHeaderTitle.setTextColor(Color.parseColor(headerText))
         btnOpenSearch.setColorFilter(Color.parseColor(headerText))
 
+        tvActiveTranslationBadge.setTextColor(Color.parseColor(headerText))
+        @Suppress("DEPRECATION")
+        tvActiveTranslationBadge.background?.setColorFilter(Color.parseColor(headerText), PorterDuff.Mode.SRC_IN)
+
         layoutSplashOverlay.setBackgroundColor(Color.parseColor(headerBg))
         findViewById<TextView>(R.id.tvSplashTitle)?.setTextColor(Color.parseColor(headerText))
-
-        btnFontPicker.setTextColor(Color.parseColor(headerText))
-        @Suppress("DEPRECATION")
-        btnFontPicker.background?.setColorFilter(Color.parseColor(headerText), PorterDuff.Mode.SRC_IN)
 
         btnThemePicker.text = themeName.first().uppercase()
         btnThemePicker.setTextColor(Color.parseColor(headerText))
@@ -367,62 +362,6 @@ class MainActivity : AppCompatActivity() {
 
         // Dynamically update theme in WebView
         webView.evaluateJavascript("setTheme('$newTheme')", null)
-    }
-
-    private fun showFontPickerModal() {
-        val bottomSheetDialog = BottomSheetDialog(this)
-        val dialogView = LayoutInflater.from(this).inflate(
-            R.layout.dialog_font_picker,
-            findViewById(android.R.id.content),
-            false
-        )
-
-        val colors = getModalThemeColors(currentTheme)
-        dialogView.findViewById<View>(R.id.fontPickerContainer)?.setBackgroundColor(Color.parseColor(colors.sheetBg))
-        dialogView.findViewById<View>(R.id.vDragHandle)?.setBackgroundColor(Color.parseColor(colors.dragHandleColor))
-        dialogView.findViewById<TextView>(R.id.tvFontPickerTitle)?.setTextColor(Color.parseColor(colors.titleColor))
-        dialogView.findViewById<View>(R.id.vFontDivider)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
-
-        val rbSans = dialogView.findViewById<RadioButton>(R.id.rbFontSans)
-        val rbSerif = dialogView.findViewById<RadioButton>(R.id.rbFontSerif)
-        val rbMono = dialogView.findViewById<RadioButton>(R.id.rbFontMono)
-        val rbRounded = dialogView.findViewById<RadioButton>(R.id.rbFontRounded)
-
-        rbSans.setTextColor(Color.parseColor(colors.titleColor))
-        rbSerif.setTextColor(Color.parseColor(colors.titleColor))
-        rbMono.setTextColor(Color.parseColor(colors.titleColor))
-        rbRounded.setTextColor(Color.parseColor(colors.titleColor))
-
-        when (currentFontFamily) {
-            "serif" -> rbSerif.isChecked = true
-            "mono" -> rbMono.isChecked = true
-            "rounded" -> rbRounded.isChecked = true
-            else -> rbSans.isChecked = true
-        }
-
-        val rgFontGroup = dialogView.findViewById<RadioGroup>(R.id.rgFontGroup)
-        rgFontGroup.setOnCheckedChangeListener { _, checkedId ->
-            val newFont = when (checkedId) {
-                R.id.rbFontSerif -> "serif"
-                R.id.rbFontMono -> "mono"
-                R.id.rbFontRounded -> "rounded"
-                else -> "sans"
-            }
-
-            if (newFont != currentFontFamily) {
-                currentFontFamily = newFont
-                getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                    .edit()
-                    .putString(KEY_FONT_FAMILY, newFont)
-                    .apply()
-
-                webView.evaluateJavascript("setFontFamily('$newFont')", null)
-                bottomSheetDialog.dismiss()
-            }
-        }
-
-        bottomSheetDialog.setContentView(dialogView)
-        bottomSheetDialog.show()
     }
 
     private fun loadCurrentChapter(targetVerseNum: Int? = null) {
@@ -514,11 +453,13 @@ class MainActivity : AppCompatActivity() {
         dialogView.findViewById<TextView>(R.id.tvAboutVersion)?.setTextColor(Color.parseColor(colors.subtitleColor))
         dialogView.findViewById<View>(R.id.vAboutDivider)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
         dialogView.findViewById<View>(R.id.vAboutDivider2)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
+        dialogView.findViewById<View>(R.id.vAboutDividerFont)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
         dialogView.findViewById<View>(R.id.vAboutDividerFeature)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
         dialogView.findViewById<View>(R.id.vAboutDivider3)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
         dialogView.findViewById<View>(R.id.vAboutDivider4)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
 
         dialogView.findViewById<TextView>(R.id.tvManageTranslationsHeader)?.setTextColor(Color.parseColor(colors.titleColor))
+        dialogView.findViewById<TextView>(R.id.tvFontSectionHeader)?.setTextColor(Color.parseColor(colors.titleColor))
         dialogView.findViewById<TextView>(R.id.tvAboutAppHeader)?.setTextColor(Color.parseColor(colors.titleColor))
         dialogView.findViewById<TextView>(R.id.tvKeyFeaturesHeader)?.setTextColor(Color.parseColor(colors.titleColor))
         dialogView.findViewById<TextView>(R.id.tvCopyrightHeader)?.setTextColor(Color.parseColor(colors.titleColor))
@@ -528,6 +469,44 @@ class MainActivity : AppCompatActivity() {
 
         dialogView.findViewById<TextView>(R.id.tvAboutFooterDev)?.setTextColor(Color.parseColor(colors.titleColor))
         dialogView.findViewById<TextView>(R.id.tvAboutFooterCopyright)?.setTextColor(Color.parseColor(colors.subtitleColor))
+
+        // Bind Font Selector Radio Group in About Modal Sheet
+        val rbSans = dialogView.findViewById<RadioButton>(R.id.rbAboutFontSans)
+        val rbSerif = dialogView.findViewById<RadioButton>(R.id.rbAboutFontSerif)
+        val rbMono = dialogView.findViewById<RadioButton>(R.id.rbAboutFontMono)
+        val rbRounded = dialogView.findViewById<RadioButton>(R.id.rbAboutFontRounded)
+
+        rbSans?.setTextColor(Color.parseColor(colors.titleColor))
+        rbSerif?.setTextColor(Color.parseColor(colors.titleColor))
+        rbMono?.setTextColor(Color.parseColor(colors.titleColor))
+        rbRounded?.setTextColor(Color.parseColor(colors.titleColor))
+
+        when (currentFontFamily) {
+            "serif" -> rbSerif?.isChecked = true
+            "mono" -> rbMono?.isChecked = true
+            "rounded" -> rbRounded?.isChecked = true
+            else -> rbSans?.isChecked = true
+        }
+
+        val rgAboutFontGroup = dialogView.findViewById<RadioGroup>(R.id.rgAboutFontGroup)
+        rgAboutFontGroup?.setOnCheckedChangeListener { _, checkedId ->
+            val newFont = when (checkedId) {
+                R.id.rbAboutFontSerif -> "serif"
+                R.id.rbAboutFontMono -> "mono"
+                R.id.rbAboutFontRounded -> "rounded"
+                else -> "sans"
+            }
+
+            if (newFont != currentFontFamily) {
+                currentFontFamily = newFont
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                    .edit()
+                    .putString(KEY_FONT_FAMILY, newFont)
+                    .apply()
+
+                webView.evaluateJavascript("setFontFamily('$newFont')", null)
+            }
+        }
 
         val tvCopyrightDetails = dialogView.findViewById<TextView>(R.id.tvCopyrightDetails)
         tvCopyrightDetails?.setTextColor(Color.parseColor(colors.previewTextColor))
