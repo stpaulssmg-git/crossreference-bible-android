@@ -154,15 +154,33 @@ class BibleDatabaseHelper(private val context: Context) :
         val trimmed = query.trim()
         if (trimmed.isEmpty()) return emptyList()
 
-        val regex = Regex("^([1-3]?\\s*[\\p{L}]+)\\s*(\\d+)[\\s:]*(\\d+)?$")
-        val match = regex.find(trimmed) ?: return emptyList()
+        val bookRaw: String
+        val chapter: Int
+        val verse: Int
 
-        val bookRaw = match.groupValues[1].trim().uppercase()
-        val chapterStr = match.groupValues[2].trim()
-        val verseStr = match.groupValues.getOrNull(3)?.trim()
+        val colonIdx = trimmed.indexOf(':')
+        if (colonIdx > 0) {
+            val beforeColon = trimmed.substring(0, colonIdx).trim()
+            val spaceIdx = beforeColon.lastIndexOf(' ')
+            if (spaceIdx <= 0) return emptyList()
 
-        val chapter = chapterStr.toIntOrNull() ?: return emptyList()
-        val verse = if (!verseStr.isNullOrBlank()) verseStr.toIntOrNull() ?: 1 else 1
+            bookRaw = beforeColon.substring(0, spaceIdx).trim().uppercase()
+            chapter = beforeColon.substring(spaceIdx + 1).trim().toIntOrNull() ?: return emptyList()
+
+            val afterColon = trimmed.substring(colonIdx + 1).trim()
+            val firstVersePart = afterColon.split(",", "-").firstOrNull()?.trim()
+            verse = firstVersePart?.filter { it.isDigit() }?.toIntOrNull() ?: 1
+        } else {
+            val regex = Regex("^([1-3]?\\s*[\\p{L}]+)\\s*(\\d+)[\\s:]*(\\d+)?$")
+            val match = regex.find(trimmed) ?: return emptyList()
+
+            bookRaw = match.groupValues[1].trim().uppercase()
+            val chapterStr = match.groupValues[2].trim()
+            val verseStr = match.groupValues.getOrNull(3)?.trim()
+
+            chapter = chapterStr.toIntOrNull() ?: return emptyList()
+            verse = if (!verseStr.isNullOrBlank()) verseStr.toIntOrNull() ?: 1 else 1
+        }
 
         val matchedCodes = mutableSetOf<String>()
 
