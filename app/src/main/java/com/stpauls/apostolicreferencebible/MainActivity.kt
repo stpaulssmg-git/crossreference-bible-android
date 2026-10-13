@@ -121,7 +121,7 @@ class MainActivity : AppCompatActivity() {
     private var currentPrimaryTranslation = "KJV"
     private var enabledTranslations = mutableSetOf("KJV", "ABE")
 
-    private val themeList = listOf("warm", "crimson", "teal", "dark")
+    private val themeList = listOf("crimson", "warm", "teal", "dark")
 
     // Navigation Backstack History for Cross-Reference study jumps
     data class NavState(val bookIndex: Int, val chapter: Int, val verse: Int)
@@ -503,8 +503,8 @@ class MainActivity : AppCompatActivity() {
         dialogView.findViewById<TextView>(R.id.tvKeyFeaturesHeader)?.setTextColor(Color.parseColor(colors.titleColor))
         dialogView.findViewById<TextView>(R.id.tvCopyrightHeader)?.setTextColor(Color.parseColor(colors.titleColor))
 
-        dialogView.findViewById<TextView>(R.id.tvAboutDescription)?.setTextColor(Color.parseColor(colors.previewTextColor))
-        dialogView.findViewById<TextView>(R.id.tvKeyFeaturesDetails)?.setTextColor(Color.parseColor(colors.previewTextColor))
+        dialogView.findViewById<TextView>(R.id.tvAboutDescription)?.setTextColor(Color.parseColor(colors.subtitleColor))
+        dialogView.findViewById<TextView>(R.id.tvKeyFeaturesDetails)?.setTextColor(Color.parseColor(colors.subtitleColor))
 
         dialogView.findViewById<TextView>(R.id.tvAboutFooterDev)?.setTextColor(Color.parseColor(colors.titleColor))
         dialogView.findViewById<TextView>(R.id.tvAboutFooterCopyright)?.setTextColor(Color.parseColor(colors.subtitleColor))
@@ -548,7 +548,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val tvCopyrightDetails = dialogView.findViewById<TextView>(R.id.tvCopyrightDetails)
-        tvCopyrightDetails?.setTextColor(Color.parseColor(colors.previewTextColor))
+        tvCopyrightDetails?.setTextColor(Color.parseColor(colors.subtitleColor))
         tvCopyrightDetails?.setLinkTextColor(Color.parseColor(colors.chipTextColor))
         tvCopyrightDetails?.movementMethod = LinkMovementMethod.getInstance()
 

@@ -275,7 +275,7 @@
                 android:layout_height="wrap_content"
                 android:lineSpacingExtra="2dp"
                 android:text="A comprehensive, offline multi-translation Bible study application featuring integrated Treasury of Scripture Knowledge (TSK) cross-references, inline parallel verse comparisons, customizable themes, and fast verse search."
-                android:textColor="#444444"
+                android:textColor="#666666"
                 android:textSize="11sp" />
 
             <View
@@ -302,8 +302,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:lineSpacingExtra="3dp"
-                android:text="• Smart Verse &amp; Reference Search: Fast 1/2/3-letter reference jump (e.g. 'h 3 2' -&gt; Hosea 3:2, 'ma 3 2' -&gt; Matthew, Mark, Malachi)\n• Whole-Word &amp; Wildcard Engine: Exact case-insensitive word matching plus wildcard '..' (e.g. 'love..')\n• Testament Breakdown &amp; Book Filter: Real-time OT/NT stats bar with a 2-column modal book filter\n• Interactive Cross References: Clickable verse numbers in ranges/lists, plus floating return bar ('Return to xref')\n• Long-Press Compare Reordering: Hold and drag translation tags in inline compare to reorder versions\n• Font Selector &amp; Themes: Sans-Serif, Serif (Georgia), Monospace &amp; Rounded fonts; Parchment, Crimson, Teal, Dark Mode\n• 13 Built-in Bibles: KJV, ABE, ABG, LXX, H/G, T4T, NAS, KAN, TEL, TAM, MAL, HIN, SPA\n• Gestures &amp; Splash Screen: Pinch font zoom, horizontal swipe chapter navigation, and startup splash screen"
-                android:textColor="#444444"
+                android:text="Smart Verse &amp; Reference Search: Fast 1/2/3-letter reference jump (e.g. 'h 3 2' -&gt; Hosea 3:2, 'ma 3 2' -&gt; Matthew, Mark, Malachi)\nWhole-Word &amp; Wildcard Engine: Exact case-insensitive word matching plus wildcard '..' (e.g. 'love..')\nTestament Breakdown &amp; Book Filter: Real-time OT/NT stats bar with a 2-column modal book filter\nInteractive Cross References: Clickable verse numbers in ranges/lists, plus floating return bar ('Return to xref')\nLong-Press Compare Reordering: Hold and drag translation tags in inline compare to reorder versions\nFont Selector &amp; Themes: Sans-Serif, Serif (Georgia), Monospace &amp; Rounded fonts; Crimson, Parchment, Teal, Dark Mode\n13 Built-in Bibles: KJV, ABE, ABG, LXX, H/G, T4T, NAS, KAN, TEL, TAM, MAL, HIN, SPA\nGestures &amp; Splash Screen: Pinch font zoom, horizontal swipe chapter navigation, and startup splash screen"
+                android:textColor="#666666"
                 android:textSize="11sp" />
 
             <View
