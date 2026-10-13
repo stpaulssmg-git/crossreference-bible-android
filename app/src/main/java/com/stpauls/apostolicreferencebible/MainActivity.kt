@@ -1458,7 +1458,7 @@ class MainActivity : AppCompatActivity() {
                         )
 
                         val localizedSource = dbHelper.formatLocalizedReference(sourceRef, currentPrimaryTranslation)
-                        btnReturnToCrossRef.text = "↩ Return to Cross References ($localizedSource)"
+                        btnReturnToCrossRef.text = "Return to xref ($localizedSource)"
                         cardCrossRefReturnBar.visibility = View.VISIBLE
 
                         val jumps = dbHelper.parseDirectReferences(rawRef, currentPrimaryTranslation)

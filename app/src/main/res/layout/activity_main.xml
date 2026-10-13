@@ -176,7 +176,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center_vertical"
-                android:text="↩ Return to Cross References (Genesis 1:1)"
+                android:text="Return to xref (Genesis 1:1)"
                 android:textColor="#FFFFFF"
                 android:textSize="13sp"
                 android:textStyle="bold"
