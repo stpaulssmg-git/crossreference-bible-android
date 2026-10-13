@@ -150,6 +150,52 @@
         android:layout_height="match_parent"
         android:layout_below="@id/topHeaderLayout" />
 
+    <!-- Floating Bottom Return Bar for Cross-Reference Study Navigation -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardCrossRefReturnBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="12dp"
+        android:visibility="gone"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="#1565C0">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="12dp">
+
+            <TextView
+                android:id="@+id/btnReturnToCrossRef"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:text="↩ Return to Cross References (Genesis 1:1)"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground" />
+
+            <ImageButton
+                android:id="@+id/btnClearReturnBar"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Clear Return Bar"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:tint="#FFFFFF" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
     <!-- Initial Splash Screen Overlay (Shows app logo while first WebView page loads) -->
     <RelativeLayout
         android:id="@+id/layoutSplashOverlay"

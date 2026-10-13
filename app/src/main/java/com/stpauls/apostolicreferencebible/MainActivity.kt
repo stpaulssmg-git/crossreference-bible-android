@@ -9,8 +9,12 @@ import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.Html
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.TextPaint
 import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
 import android.util.Log
 import android.util.TypedValue
 import android.view.GestureDetector
@@ -78,6 +82,22 @@ class MainActivity : AppCompatActivity() {
     private lateinit var ivHeaderDropdown: ImageView
     private lateinit var headerDivider: View
     private lateinit var layoutSplashOverlay: RelativeLayout
+
+    // Floating Cross-Reference Return Navigation Bar Elements
+    private lateinit var cardCrossRefReturnBar: CardView
+    private lateinit var btnReturnToCrossRef: TextView
+    private lateinit var btnClearReturnBar: ImageButton
+
+    data class CrossRefReturnState(
+        val anchor: String,
+        val sourceRef: String,
+        val referencesStr: String,
+        val sourceBookIndex: Int,
+        val sourceChapter: Int,
+        val sourceVerse: Int
+    )
+
+    private var activeCrossRefReturnState: CrossRefReturnState? = null
 
     private lateinit var dbHelper: BibleDatabaseHelper
     private lateinit var htmlEngine: HtmlEngine
@@ -229,6 +249,27 @@ class MainActivity : AppCompatActivity() {
         headerDivider = findViewById(R.id.headerDivider)
         layoutSplashOverlay = findViewById(R.id.layoutSplashOverlay)
 
+        // Floating Cross Reference Return Bar
+        cardCrossRefReturnBar = findViewById(R.id.cardCrossRefReturnBar)
+        btnReturnToCrossRef = findViewById(R.id.btnReturnToCrossRef)
+        btnClearReturnBar = findViewById(R.id.btnClearReturnBar)
+
+        btnClearReturnBar.setOnClickListener {
+            cardCrossRefReturnBar.visibility = View.GONE
+            activeCrossRefReturnState = null
+        }
+
+        btnReturnToCrossRef.setOnClickListener {
+            val returnState = activeCrossRefReturnState ?: return@setOnClickListener
+            cardCrossRefReturnBar.visibility = View.GONE
+
+            currentBookIndex = returnState.sourceBookIndex
+            currentChapter = returnState.sourceChapter
+            loadCurrentChapter(targetVerseNum = returnState.sourceVerse)
+
+            showBottomSheet(returnState.anchor, returnState.sourceRef, returnState.referencesStr)
+        }
+
         webView.settings.apply {
             javaScriptEnabled = true
             setSupportZoom(false)
@@ -295,6 +336,14 @@ class MainActivity : AppCompatActivity() {
         btnThemePicker.background?.setColorFilter(Color.parseColor(headerText), PorterDuff.Mode.SRC_IN)
 
         headerDivider.setBackgroundColor(Color.parseColor(dividerBg))
+
+        val returnBarBg = when (themeName) {
+            "crimson" -> "#8B0000"
+            "teal" -> "#005F60"
+            "dark" -> "#1E3A5F"
+            else -> "#1565C0"
+        }
+        cardCrossRefReturnBar.setCardBackgroundColor(Color.parseColor(returnBarBg))
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.statusBarColor = Color.parseColor(statusBg)
@@ -1233,6 +1282,63 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun buildInteractiveReferenceSpannable(
+        rawRef: String,
+        localizedRef: String,
+        linkColor: Int,
+        onVerseClick: (verseNum: Int) -> Unit
+    ): SpannableStringBuilder {
+        val ssb = SpannableStringBuilder(localizedRef)
+        val colonIdx = localizedRef.indexOf(':')
+        val firstVerseNum = rawRef.substringAfter(':', "").split(",", "-").firstOrNull()?.filter { it.isDigit() }?.toIntOrNull() ?: 1
+
+        if (colonIdx > 0) {
+            val prefixSpan = object : ClickableSpan() {
+                override fun onClick(widget: View) {
+                    onVerseClick(firstVerseNum)
+                }
+                override fun updateDrawState(ds: TextPaint) {
+                    ds.color = linkColor
+                    ds.isUnderlineText = false
+                }
+            }
+            ssb.setSpan(prefixSpan, 0, colonIdx + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+            val digitRegex = Regex("\\b\\d+\\b")
+            val matches = digitRegex.findAll(localizedRef, startIndex = colonIdx + 1)
+
+            for (match in matches) {
+                val vNum = match.value.toIntOrNull() ?: continue
+                val start = match.range.first
+                val end = match.range.last + 1
+
+                val vSpan = object : ClickableSpan() {
+                    override fun onClick(widget: View) {
+                        onVerseClick(vNum)
+                    }
+                    override fun updateDrawState(ds: TextPaint) {
+                        ds.color = linkColor
+                        ds.isUnderlineText = true
+                    }
+                }
+                ssb.setSpan(vSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+        } else {
+            val wholeSpan = object : ClickableSpan() {
+                override fun onClick(widget: View) {
+                    onVerseClick(firstVerseNum)
+                }
+                override fun updateDrawState(ds: TextPaint) {
+                    ds.color = linkColor
+                    ds.isUnderlineText = false
+                }
+            }
+            ssb.setSpan(wholeSpan, 0, localizedRef.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+
+        return ssb
+    }
+
     // Displays clicked cross references in a Bottom Sheet with verse text previews
     @SuppressLint("ClickableViewAccessibility", "InflateParams")
     private fun showBottomSheet(anchor: String, sourceRef: String, referencesStr: String) {
@@ -1323,26 +1429,44 @@ class MainActivity : AppCompatActivity() {
 
             runOnUiThread {
                 val inflater = LayoutInflater.from(this@MainActivity)
+                val refColor = Color.parseColor(colors.refTitleColor)
+
                 for ((rawRef, localizedRef, preview) in itemDetails) {
                     val itemView = inflater.inflate(R.layout.item_cross_ref, containerXrefs, false)
                     val tvReference = itemView.findViewById<TextView>(R.id.tvReference)
                     val tvPreviewText = itemView.findViewById<TextView>(R.id.tvPreviewText)
                     val itemDivider = itemView.findViewById<View>(R.id.itemDivider)
 
-                    tvReference.setTextColor(Color.parseColor(colors.refTitleColor))
-                    tvReference.text = localizedRef
+                    tvReference.movementMethod = LinkMovementMethod.getInstance()
                     tvReference.setTextSize(TypedValue.COMPLEX_UNIT_SP, refTitleFontSize)
                     itemDivider?.setBackgroundColor(Color.parseColor(colors.dividerColor))
 
-                    // Allow tapping cross-reference title to jump directly to target verse and save current verse in navigation stack
-                    tvReference.setOnClickListener {
+                    // Build interactive title where clicking individual verse numbers jumps to that specific verse
+                    tvReference.text = buildInteractiveReferenceSpannable(
+                        rawRef = rawRef,
+                        localizedRef = localizedRef,
+                        linkColor = refColor
+                    ) { targetVerseNum ->
+                        // Save source state for Return Bar
+                        activeCrossRefReturnState = CrossRefReturnState(
+                            anchor = anchor,
+                            sourceRef = sourceRef,
+                            referencesStr = referencesStr,
+                            sourceBookIndex = currentBookIndex,
+                            sourceChapter = currentChapter,
+                            sourceVerse = sourceVerseNum
+                        )
+
+                        val localizedSource = dbHelper.formatLocalizedReference(sourceRef, currentPrimaryTranslation)
+                        btnReturnToCrossRef.text = "↩ Return to Cross References ($localizedSource)"
+                        cardCrossRefReturnBar.visibility = View.VISIBLE
+
                         val jumps = dbHelper.parseDirectReferences(rawRef, currentPrimaryTranslation)
                         if (jumps.isNotEmpty()) {
                             val targetJump = jumps.first()
-                            navHistory.add(NavState(currentBookIndex, currentChapter, sourceVerseNum))
                             currentBookIndex = targetJump.bookIndex
                             currentChapter = targetJump.chapter
-                            loadCurrentChapter(targetVerseNum = targetJump.verse)
+                            loadCurrentChapter(targetVerseNum = targetVerseNum)
                             bottomSheetDialog.dismiss()
                         }
                     }
