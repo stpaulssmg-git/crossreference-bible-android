@@ -123,8 +123,13 @@ class MainActivity : AppCompatActivity() {
 
     private val themeList = listOf("crimson", "warm", "teal", "dark")
 
-    // Navigation Backstack History for Cross-Reference study jumps
-    data class NavState(val bookIndex: Int, val chapter: Int, val verse: Int)
+    // Navigation Backstack History for Cross-Reference & Search Study Jumps
+    data class NavState(
+        val bookIndex: Int,
+        val chapter: Int,
+        val verse: Int,
+        val isSearchJump: Boolean = false
+    )
     private val navHistory = mutableListOf<NavState>()
 
     // Retain search dialog instance to preserve query and scroll results when returning from main reader
@@ -205,8 +210,6 @@ class MainActivity : AppCompatActivity() {
         if (text.isBlank()) return false
         for (char in text) {
             val code = char.code
-            // Hebrew block: 0x0590 - 0x05FF, Hebrew Presentation Forms: 0xFB1D - 0xFB4F
-            // Arabic block: 0x0600 - 0x06FF, 0x0750 - 0x077F, 0x08A0 - 0x08FF, 0xFB50 - 0xFDFF, 0xFE70 - 0xFEFF
             if ((code in 0x0590..0x05FF) || (code in 0xFB1D..0xFB4F) ||
                 (code in 0x0600..0x06FF) || (code in 0x0750..0x077F) || (code in 0x08A0..0x08FF) ||
                 (code in 0xFB50..0xFDFF) || (code in 0xFE70..0xFEFF)) {
@@ -226,7 +229,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Register Back Press Callback for Cross-Reference Study Navigation Stack
+        // Register Back Press Callback for Cross-Reference & Search Navigation Stack
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (navHistory.isNotEmpty()) {
@@ -234,6 +237,10 @@ class MainActivity : AppCompatActivity() {
                     currentBookIndex = previousState.bookIndex
                     currentChapter = previousState.chapter
                     loadCurrentChapter(targetVerseNum = previousState.verse)
+
+                    if (previousState.isSearchJump && cachedSearchDialog != null) {
+                        cachedSearchDialog?.show()
+                    }
                 } else {
                     isEnabled = false
                     onBackPressedDispatcher.onBackPressed()
@@ -866,6 +873,7 @@ class MainActivity : AppCompatActivity() {
         val adapter = SearchResultAdapter(colors, primaryTranslationCode = currentPrimaryTranslation) { result ->
             val bookIdx = BIBLE_BOOKS.indexOfFirst { it.code == result.bookCode }
             if (bookIdx >= 0) {
+                navHistory.add(NavState(currentBookIndex, currentChapter, 1, isSearchJump = true))
                 currentBookIndex = bookIdx
                 currentChapter = result.chapter
                 loadCurrentChapter(targetVerseNum = result.verse)
@@ -1095,6 +1103,7 @@ class MainActivity : AppCompatActivity() {
                 val directJumps = dbHelper.parseDirectReferences(queryText, currentPrimaryTranslation)
                 if (directJumps.isNotEmpty()) {
                     val jump = directJumps.first()
+                    navHistory.add(NavState(currentBookIndex, currentChapter, 1, isSearchJump = true))
                     currentBookIndex = jump.bookIndex
                     currentChapter = jump.chapter
                     loadCurrentChapter(targetVerseNum = jump.verse)
@@ -1142,6 +1151,7 @@ class MainActivity : AppCompatActivity() {
                         tvCnt.text = "${jump.bookName} (${jump.totalChapters} Chapters)"
 
                         cardView.setOnClickListener {
+                            navHistory.add(NavState(currentBookIndex, currentChapter, 1, isSearchJump = true))
                             currentBookIndex = jump.bookIndex
                             currentChapter = jump.chapter
                             loadCurrentChapter(targetVerseNum = jump.verse)
@@ -1433,6 +1443,7 @@ class MainActivity : AppCompatActivity() {
         tvTitle?.setTextColor(Color.parseColor(colors.titleColor))
         tvTitle?.text = "Cross References for \"$anchor\""
         tvSourceVerse?.setTextColor(Color.parseColor(colors.subtitleColor))
+
         val formattedSourceRef = dbHelper.formatLocalizedReference(sourceRef, currentPrimaryTranslation)
         tvSourceVerse?.text = formattedSourceRef
         if (isRtlText(formattedSourceRef)) {
@@ -1442,6 +1453,7 @@ class MainActivity : AppCompatActivity() {
             tvSourceVerse?.gravity = Gravity.START
             tvSourceVerse?.textDirection = View.TEXT_DIRECTION_LTR
         }
+
         vDivider?.setBackgroundColor(Color.parseColor(colors.dividerColor))
 
         // Extract source verse number to push onto navigation stack when user jumps to a cross reference
