@@ -8,8 +8,10 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
 
 ### 1. 📖 Multilingual Reader & Chapter Navigation
 * **Pinch-to-Zoom Font Scaling**: Dynamic pinch gesture zooming with persistent font size preferences.
+* **Font Family Selector**: Instant switching between **Sans-Serif (Modern)**, **Serif (Georgia Book Style)**, **Monospace**, and **Rounded** fonts.
 * **Swipe Chapter Navigation**: Smooth horizontal touch swiping to navigate between chapters effortlessly.
 * **Multilingual Localization**: Native book names and references in English, Kannada, Telugu, Malayalam, Tamil, Hindi, Spanish, and Chinese (HGB).
+* **Startup Splash Screen**: Centered app logo and title during launch, smoothly fading out when content finishes loading.
 
 ---
 
@@ -31,11 +33,14 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
 
 ---
 
-### 3. 🔗 Interactive Cross References
+### 3. 🔗 Interactive Cross References & Study Navigation
 * **Anchor Word Highlighting**: Interactive anchor words dynamically highlighted within King James Version (KJV) verses.
-* **Cross Reference Bottom Sheet**:
+* **Interactive Cross Reference Sheet**:
   * Tapping highlighted anchor words or the `xref` tag opens a bottom sheet with verse previews for all linked cross-references.
-  * Supports pinch-to-zoom text scaling for preview items.
+  * **Clickable Verse Numbers**: Tapping individual verse numbers in ranges or comma lists (e.g., tapping `8` in `James 3:4, 8, 10` or `James 3:17-18`) jumps directly to that specific verse in the reader.
+* **Floating Return Navigation Bar**:
+  * When jumping to a cross-reference, a floating bottom bar (`Return to xref (Job 11:1)`) allows one-tap return to your source passage and re-opens the cross-reference preview sheet.
+  * Includes a quick `✕` clear button to dismiss the return bar.
 
 ---
 
@@ -43,6 +48,9 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
 * **Inline Verse Comparison**:
   * Tap any verse in the main reader to toggle inline comparison for all active secondary translations.
   * Tap translation tags (`KJV`, `ABE`, `LXX`, etc.) to switch primary translations instantly.
+* **Long-Press Drag & Drop Reordering**:
+  * Press and hold any translation short name (`[LXX]`, `[ABE]`, `[NAS]`) inside the inline comparison block to drag and reorder comparison versions with haptic touch feedback.
+  * Custom compare orders persist across all app chapters.
 * **Verse Compare Modal**:
   * Detailed modal comparing selected verses across all installed translations.
 * **Missing Verse Handling**:
@@ -80,7 +88,7 @@ Four unified themes applying consistent styling across status bar, header, reade
 ### Building from Source
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/ApostolicReferenceBible.git
+   git clone https://github.com/stpaulssmg-git/crossreference-bible-android.git
    ```
 2. Open the project in **Android Studio**.
 3. Sync Gradle and build the debug APK:
