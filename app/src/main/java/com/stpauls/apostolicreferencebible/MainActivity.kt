@@ -73,6 +73,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var headerBar: RelativeLayout
     private lateinit var ivHeaderDropdown: ImageView
     private lateinit var headerDivider: View
+    private lateinit var layoutSplashOverlay: RelativeLayout
 
     private lateinit var dbHelper: BibleDatabaseHelper
     private lateinit var htmlEngine: HtmlEngine
@@ -199,6 +200,7 @@ class MainActivity : AppCompatActivity() {
         headerBar = findViewById(R.id.headerBar)
         ivHeaderDropdown = findViewById(R.id.ivHeaderDropdown)
         headerDivider = findViewById(R.id.headerDivider)
+        layoutSplashOverlay = findViewById(R.id.layoutSplashOverlay)
 
         webView.settings.apply {
             javaScriptEnabled = true
@@ -241,7 +243,7 @@ class MainActivity : AppCompatActivity() {
         val (headerBg, headerText, dividerBg, statusBg) = when (themeName) {
             "crimson" -> Tuple4("#F8ECE8", "#3E1014", "#E8D0C8", "#F8ECE8")
             "teal" -> Tuple4("#E0F2F1", "#00363A", "#B2DFDB", "#E0F2F1")
-            "dark" -> Tuple4("#1E1E1E", "#FFFFFF", "#333333", "#121212")
+            "dark" -> Tuple4("#121212", "#FFFFFF", "#333333", "#121212")
             else -> Tuple4("#F5F0E6", "#1C1B1F", "#E0D8C8", "#F5F0E6") // "warm"
         }
 
@@ -249,6 +251,9 @@ class MainActivity : AppCompatActivity() {
         tvHeaderTitle.setTextColor(Color.parseColor(headerText))
         ivHeaderDropdown.setColorFilter(Color.parseColor(headerText))
         btnOpenSearch.setColorFilter(Color.parseColor(headerText))
+
+        layoutSplashOverlay.setBackgroundColor(Color.parseColor(headerBg))
+        findViewById<TextView>(R.id.tvSplashTitle)?.setTextColor(Color.parseColor(headerText))
 
         btnThemePicker.text = themeName.first().uppercase()
         btnThemePicker.setTextColor(Color.parseColor(headerText))
@@ -330,6 +335,13 @@ class MainActivity : AppCompatActivity() {
 
                 runOnUiThread {
                     webView.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null)
+
+                    // Smoothly fade out splash screen overlay once main reader content is loaded
+                    if (layoutSplashOverlay.visibility == View.VISIBLE) {
+                        layoutSplashOverlay.animate().alpha(0f).setDuration(400).withEndAction {
+                            layoutSplashOverlay.visibility = View.GONE
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading chapter", e)
@@ -404,9 +416,9 @@ class MainActivity : AppCompatActivity() {
 
         ivManageTranslationsDropdown?.setColorFilter(Color.parseColor(colors.titleColor))
 
-        // Collapsed state by default whenever opened
-        layoutManageTranslationsContent.visibility = View.GONE
-        ivManageTranslationsDropdown.rotation = 0f
+        // Expanded state by default whenever opened
+        layoutManageTranslationsContent.visibility = View.VISIBLE
+        ivManageTranslationsDropdown.rotation = 180f
 
         btnToggleManageTranslations?.setOnClickListener {
             if (layoutManageTranslationsContent.visibility == View.VISIBLE) {
