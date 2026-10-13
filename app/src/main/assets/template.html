@@ -189,7 +189,20 @@
             line-height: 1.5;
             text-align: left;
             direction: ltr;
+            transition: transform 0.15s ease, background-color 0.15s ease;
         }
+        .secondary-row.dragging {
+            opacity: 0.92;
+            background-color: rgba(21, 101, 192, 0.15);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transform: scale(1.02);
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+        body.theme-crimson .secondary-row.dragging { background-color: rgba(183, 28, 28, 0.15); }
+        body.theme-teal .secondary-row.dragging { background-color: rgba(0, 121, 107, 0.15); }
+        body.theme-dark .secondary-row.dragging { background-color: rgba(100, 181, 246, 0.25); }
+
         .secondary-row.secondary-rtl {
             text-align: right;
             direction: rtl;
@@ -218,8 +231,10 @@
             display: inline-block;
             margin-right: 6px;
             margin-left: 6px;
-            cursor: pointer;
+            cursor: grab;
             text-decoration: underline;
+            user-select: none;
+            touch-action: none;
         }
         body.theme-crimson .trans-tag { color: #B71C1C; }
         body.theme-teal .trans-tag { color: #00796B; }
@@ -292,6 +307,87 @@
                 }, 2500);
             }
         }
+
+        // Long-Press Drag & Drop Handler for Translation Tags (.trans-tag)
+        (function() {
+            let dragTimer = null;
+            let activeDragRow = null;
+            let isDraggingRow = false;
+            let startY = 0;
+
+            function initTagDragListeners() {
+                document.querySelectorAll('.trans-tag').forEach(tag => {
+                    if (tag.dataset.dragInitialized) return;
+                    tag.dataset.dragInitialized = "true";
+
+                    tag.addEventListener('touchstart', function(e) {
+                        if (e.touches.length !== 1) return;
+                        let row = tag.closest('.secondary-row');
+                        if (!row) return;
+
+                        startY = e.touches[0].clientY;
+                        dragTimer = setTimeout(function() {
+                            isDraggingRow = true;
+                            activeDragRow = row;
+                            row.classList.add('dragging');
+                            if (window.Android && window.Android.vibrateHaptic) {
+                                window.Android.vibrateHaptic();
+                            }
+                        }, 350);
+                    }, { passive: false });
+
+                    tag.addEventListener('touchmove', function(e) {
+                        if (!isDraggingRow) {
+                            if (Math.abs(e.touches[0].clientY - startY) > 8) {
+                                clearTimeout(dragTimer);
+                            }
+                            return;
+                        }
+                        e.preventDefault();
+                        let touchY = e.touches[0].clientY;
+                        let block = activeDragRow.closest('.secondary-verse-block');
+                        if (!block) return;
+
+                        let siblings = Array.from(block.querySelectorAll('.secondary-row'));
+                        let nextSibling = siblings.find(sibling => {
+                            if (sibling === activeDragRow) return false;
+                            let box = sibling.getBoundingClientRect();
+                            return touchY < box.top + box.height / 2;
+                        });
+
+                        if (nextSibling) {
+                            block.insertBefore(activeDragRow, nextSibling);
+                        } else {
+                            block.appendChild(activeDragRow);
+                        }
+                    }, { passive: false });
+
+                    function endDrag() {
+                        clearTimeout(dragTimer);
+                        if (isDraggingRow && activeDragRow) {
+                            activeDragRow.classList.remove('dragging');
+                            let block = activeDragRow.closest('.secondary-verse-block');
+                            if (block) {
+                                let codes = Array.from(block.querySelectorAll('.secondary-row'))
+                                    .map(r => r.getAttribute('data-code'))
+                                    .filter(c => c && c.length > 0);
+                                if (codes.length > 0 && window.Android && window.Android.saveCompareOrder) {
+                                    window.Android.saveCompareOrder(codes.join(','));
+                                }
+                            }
+                        }
+                        isDraggingRow = false;
+                        activeDragRow = null;
+                    }
+
+                    tag.addEventListener('touchend', endDrag, { passive: true });
+                    tag.addEventListener('touchcancel', endDrag, { passive: true });
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', initTagDragListeners);
+            window.initTagDragListeners = initTagDragListeners;
+        })();
 
         (function() {
             let touchStartX = 0;

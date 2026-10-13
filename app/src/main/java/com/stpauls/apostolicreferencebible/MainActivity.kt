@@ -7,6 +7,8 @@ import android.graphics.PorterDuff
 import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.text.Editable
 import android.text.Html
 import android.text.SpannableStringBuilder
@@ -69,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_FONT_FAMILY = "selected_font_family"
         private const val KEY_PRIMARY_TRANS = "primary_translation"
         private const val KEY_ENABLED_TRANS = "enabled_translations"
+        private const val KEY_COMPARE_ORDER = "compare_translation_order"
     }
 
     private lateinit var webView: WebView
@@ -458,8 +461,17 @@ class MainActivity : AppCompatActivity() {
                 // Query enabled secondary comparison verses for requested chapter
                 val activeSecondary = enabledTranslations.filter { !it.equals(currentPrimaryTranslation, ignoreCase = true) }.toSet()
                 val primaryVerseNumbers = verses.map { it.verse }
+                val compareOrderCsv = prefs.getString(KEY_COMPARE_ORDER, "") ?: ""
+                val compareOrderList = compareOrderCsv.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+
                 val secondaryVersesMap = if (activeSecondary.isNotEmpty()) {
-                    dbHelper.getSecondaryVersesForChapter(activeSecondary, bookInfo.code, currentChapter, primaryVerseNumbers)
+                    dbHelper.getSecondaryVersesForChapter(
+                        activeSecondary,
+                        bookInfo.code,
+                        currentChapter,
+                        primaryVerseNumbers,
+                        compareOrderList
+                    )
                 } else emptyMap()
 
                 // Generate HTML with anchor word highlighting ONLY for KJV, inline secondary verses, active theme, active font family, and saved font size
@@ -1211,6 +1223,35 @@ class MainActivity : AppCompatActivity() {
 
     // JavaScript Bridge connecting WebView clicks & gestures to Android Native code
     inner class CrossReferenceInterface {
+        @SuppressLint("MissingPermission")
+        @JavascriptInterface
+        fun vibrateHaptic() {
+            runOnUiThread {
+                val vibrator = getSystemService(VIBRATOR_SERVICE) as? Vibrator
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator?.vibrate(VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator?.vibrate(40)
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun saveCompareOrder(orderCsv: String) {
+            runOnUiThread {
+                val newOrderList = orderCsv.split(",").map { it.trim().uppercase() }.filter { it.isNotEmpty() }
+                if (newOrderList.isNotEmpty()) {
+                    getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                        .edit()
+                        .putString(KEY_COMPARE_ORDER, orderCsv)
+                        .apply()
+                    loadCurrentChapter()
+                    Toast.makeText(this@MainActivity, "Compare Order Updated", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
         @JavascriptInterface
         fun onCrossReferenceClicked(anchor: String, sourceRef: String, referencesStr: String) {
             runOnUiThread {

@@ -427,12 +427,21 @@ class BibleDatabaseHelper(private val context: Context) :
         secondaryTranslations: Set<String>,
         book: String,
         chapter: Int,
-        primaryVerseNumbers: List<Int> = emptyList()
+        primaryVerseNumbers: List<Int> = emptyList(),
+        compareOrderList: List<String> = emptyList()
     ): Map<Int, List<TranslationVerse>> {
         val resultMap = mutableMapOf<Int, MutableList<TranslationVerse>>()
         val normalizedBook = normalizeBookCode(book)
 
-        for (transCode in secondaryTranslations) {
+        // Sort secondary translations according to compareOrderList if provided
+        val orderedSecondary = if (compareOrderList.isNotEmpty()) {
+            val orderMap = compareOrderList.mapIndexed { idx, code -> code.uppercase() to idx }.toMap()
+            secondaryTranslations.sortedBy { orderMap[it.uppercase()] ?: 999 }
+        } else {
+            secondaryTranslations.toList()
+        }
+
+        for (transCode in orderedSecondary) {
             val dbFileName = getDbFileName(transCode)
             val transName = TRANSLATION_MAP[transCode.uppercase()] ?: transCode
             val fetchedVersesMap = mutableMapOf<Int, String>()

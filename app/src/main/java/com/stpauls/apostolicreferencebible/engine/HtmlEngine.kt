@@ -99,7 +99,7 @@ class HtmlEngine(private val context: Context) {
                         escapeHtml(sec.text)
                     }
 
-                    sb.append("<div class=\"$rowClass\" $dirAttr>")
+                    sb.append("<div class=\"$rowClass\" $dirAttr data-code=\"${sec.translationCode}\">")
                         .append("<span class=\"trans-tag\" onclick=\"event.stopPropagation(); Android.onSwitchPrimaryTranslation('${sec.translationCode}')\">")
                         .append(sec.translationCode)
                         .append("</span>&nbsp;")
