@@ -59,9 +59,12 @@ class SearchResultAdapter(
             Html.fromHtml(snippetHtml)
         }
 
-        holder.itemView.setOnClickListener {
+        // Only tapping the reference title (e.g. Genesis 1:1) opens the verse in reader
+        holder.tvSearchReference.setOnClickListener {
             onResultSelected(item)
         }
+        holder.itemView.setOnClickListener(null)
+        holder.itemView.isClickable = false
     }
 
     override fun getItemCount(): Int = items.size
