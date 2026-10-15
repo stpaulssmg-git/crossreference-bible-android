@@ -6,12 +6,19 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
 
 ## ✨ Key Features
 
-### 1. 📖 Multilingual Reader & Chapter Navigation
+### 1. 📖 Multilingual Reader & Ergonomic Navigation
+* **Spacious Header & Right-Hand Action Cluster**:
+  * **Left**: Prominent passage title (`Genesis 1`) with expanded room for long book names.
+  * **Right**: Grouped action chips: `[🔍]` Search, `[KJV]` Active Translation Badge, and `[W]` Theme Picker.
+* **Long-Press Quick Primary Switcher**:
+  * Single-click on the translation badge opens full About/Manage settings.
+  * **Long-press** on the circular translation chip (`[KJV]`) triggers haptic vibration and opens a 1-tap **Quick Primary Bible Selector** sheet.
+* **On-the-Fly Top Chapter Swipe HUD**:
+  * Top-positioned floating HUD card displaying localized book name and chapter number on the fly during horizontal swipe gestures, featuring high-contrast Dark Mode styling.
 * **Pinch-to-Zoom Font Scaling**: Dynamic pinch gesture zooming with persistent font size preferences.
-* **Font Family Selector**: Instant switching between **Sans-Serif (Modern)**, **Serif (Georgia Book Style)**, **Monospace**, and **Rounded** fonts.
-* **Swipe Chapter Navigation**: Smooth horizontal touch swiping to navigate between chapters effortlessly.
-* **Multilingual Localization**: Native book names and references in English, Kannada, Telugu, Malayalam, Tamil, Hindi, Spanish, and Chinese (HGB).
-* **Startup Splash Screen**: Centered app logo and title during launch, smoothly fading out when content finishes loading.
+* **Font Family Selector**: Choose between **Sans-Serif (Modern)**, **Serif (Georgia Book Style)**, **Monospace**, and **Rounded** fonts directly in the About sheet.
+* **BiDi Hebrew & Multilingual Support**: Right-To-Left (`RTL`) text directionality and Unicode directional isolates (`\u2067`) for Hebrew book names, references, and verse previews.
+* **Startup Splash Screen**: Centered app logo and title during cold launch, smoothly fading out when content finishes loading.
 
 ---
 
@@ -28,8 +35,8 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
 * **Pagination & Swipe Gestures**:
   * Displays 10 verses per page with total occurrence counts (`Showing 10 verses for "love" (Total 280)`).
   * Smooth horizontal swipe gestures or `Prev / Next` controls to navigate between result pages.
-* **Search State Retention**:
-  * Preserves search query, pagination page, filter settings, and scroll position when navigating to the reader and returning to search.
+* **Search State Retention & Back Button Return**:
+  * Preserves search query, pagination page, filter settings, and scroll position when navigating to the reader. Pressing the Android **Back button** on the main reader returns directly to your search page.
 
 ---
 
@@ -37,7 +44,7 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
 * **Anchor Word Highlighting**: Interactive anchor words dynamically highlighted within King James Version (KJV) verses.
 * **Interactive Cross Reference Sheet**:
   * Tapping highlighted anchor words or the `xref` tag opens a bottom sheet with verse previews for all linked cross-references.
-  * **Clickable Verse Numbers**: Tapping individual verse numbers in ranges or comma lists (e.g., tapping `8` in `James 3:4, 8, 10` or `James 3:17-18`) jumps directly to that specific verse in the reader.
+  * **Clickable Individual Verse Numbers**: Tapping individual verse numbers in ranges or comma lists (e.g., tapping `8` in `James 3:4, 8, 10` or `17` in `James 3:17-18`) jumps directly to that specific verse in the reader.
 * **Floating Return Navigation Bar**:
   * When jumping to a cross-reference, a floating bottom bar (`Return to xref (Job 11:1)`) allows one-tap return to your source passage and re-opens the cross-reference preview sheet.
   * Includes a quick `✕` clear button to dismiss the return bar.
@@ -59,9 +66,9 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
 ---
 
 ### 5. 🎨 Custom Reader Themes
-Four unified themes applying consistent styling across status bar, header, reader view, and modal dialogs:
+Four unified themes applying consistent styling across status bar, header, reader view, and modal dialogs with a 1-tap **Crimson $\rightarrow$ Warm $\rightarrow$ Teal $\rightarrow$ Dark** cycle order (Crimson set as default first-install theme):
+* 🍷 **Crimson** *(Default First-Install)*
 * 📜 **Warm** (Parchment)
-* 🍷 **Crimson**
 * 🌲 **Teal**
 * 🌙 **Dark**
 
