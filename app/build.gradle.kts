@@ -1,13 +1,24 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
 
+val localProperties = Properties().apply {
+    val localFile = rootProject.file("local.properties")
+    if (localFile.exists()) {
+        load(localFile.inputStream())
+    }
+}
+
+val releaseStorePassword = localProperties.getProperty("RELEASE_STORE_PASSWORD") ?: System.getenv("RELEASE_STORE_PASSWORD") ?: ""
+val releaseKeyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS") ?: System.getenv("RELEASE_KEY_ALIAS") ?: ""
+val releaseKeyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD") ?: System.getenv("RELEASE_KEY_PASSWORD") ?: ""
+
 android {
     namespace = "com.stpauls.apostolicreferencebible"
-    compileSdk {
-        version = release(37)
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.stpauls.apostolicreferencebible"
@@ -21,16 +32,22 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("release-keystore.jks")
-            storePassword = "password123"
-            keyAlias = "release_key"
-            keyPassword = "password123"
+            val keystoreFile = file("release-keystore.jks")
+            if (keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            val releaseSigning = signingConfigs.findByName("release")
+            if (releaseSigning?.storeFile?.exists() == true) {
+                signingConfig = releaseSigning
+            }
             optimization {
                 enable = false
             }
