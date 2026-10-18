@@ -74,6 +74,8 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_PRIMARY_TRANS = "primary_translation"
         private const val KEY_ENABLED_TRANS = "enabled_translations"
         private const val KEY_COMPARE_ORDER = "compare_translation_order"
+        private const val KEY_LAST_BOOK_INDEX = "last_book_index"
+        private const val KEY_LAST_CHAPTER = "last_chapter"
     }
 
     private lateinit var webView: WebView
@@ -267,6 +269,8 @@ class MainActivity : AppCompatActivity() {
         currentFontFamily = prefs.getString(KEY_FONT_FAMILY, "sans") ?: "sans"
         currentPrimaryTranslation = prefs.getString(KEY_PRIMARY_TRANS, "KJV") ?: "KJV"
         enabledTranslations = prefs.getStringSet(KEY_ENABLED_TRANS, setOf("KJV", "ABE"))?.toMutableSet() ?: mutableSetOf("KJV", "ABE")
+        currentBookIndex = prefs.getInt(KEY_LAST_BOOK_INDEX, 0).coerceIn(0, BIBLE_BOOKS.size - 1)
+        currentChapter = prefs.getInt(KEY_LAST_CHAPTER, 1).coerceAtLeast(1)
 
         // Initialize helpers
         dbHelper = BibleDatabaseHelper(this)
@@ -492,6 +496,12 @@ class MainActivity : AppCompatActivity() {
 
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         currentFontSize = prefs.getFloat(KEY_FONT_SIZE, currentFontSize)
+
+        // Save last read book index and chapter position
+        prefs.edit()
+            .putInt(KEY_LAST_BOOK_INDEX, currentBookIndex)
+            .putInt(KEY_LAST_CHAPTER, currentChapter)
+            .apply()
 
         if (targetVerseNum != null) {
             webView.webViewClient = object : WebViewClient() {
