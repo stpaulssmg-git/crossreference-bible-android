@@ -40,7 +40,8 @@ class HtmlEngine(private val context: Context) {
         themeName: String = "warm",
         fontFamily: String = "sans",
         fontSize: Float = 14f,
-        primaryTranslationCode: String = "KJV"
+        primaryTranslationCode: String = "KJV",
+        alwaysShowCompare: Boolean = false
     ): String {
         val crossRefsByVerse = crossRefs.groupBy { it.verse }
         val sb = StringBuilder()
@@ -86,7 +87,8 @@ class HtmlEngine(private val context: Context) {
 
             // Append inline collapsible secondary verse comparison block if secondary verses exist
             if (secVerses.isNotEmpty()) {
-                sb.append("<div id=\"$verseId\" class=\"secondary-verse-block\" style=\"display: none;\">")
+                val blockStyle = if (alwaysShowCompare) "display: block;" else "display: none;"
+                sb.append("<div id=\"$verseId\" class=\"secondary-verse-block\" style=\"$blockStyle\">")
 
                 for (sec in secVerses) {
                     val isSecRtl = isRtlText(sec.text)

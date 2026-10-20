@@ -79,9 +79,11 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_LAST_CHAPTER = "last_chapter"
         private const val KEY_DELETED_TRANS = "deleted_translations"
         private const val KEY_FIRST_LAUNCH = "is_first_launch"
+        private const val KEY_ALWAYS_SHOW_COMPARE = "always_show_compare"
         private val coreTranslations = setOf("KJV", "ABE", "ABG", "LXX", "T4T", "H/G", "HGB")
     }
 
+    private var alwaysShowCompare = false
     private var deletedTranslations = mutableSetOf<String>()
 
     private fun getAvailableTranslations() = INSTALLED_TRANSLATIONS.filter { !deletedTranslations.contains(it.code) }
@@ -278,6 +280,7 @@ class MainActivity : AppCompatActivity() {
         currentPrimaryTranslation = prefs.getString(KEY_PRIMARY_TRANS, "KJV") ?: "KJV"
         enabledTranslations = prefs.getStringSet(KEY_ENABLED_TRANS, setOf("KJV", "ABE"))?.toMutableSet() ?: mutableSetOf("KJV", "ABE")
         deletedTranslations = prefs.getStringSet(KEY_DELETED_TRANS, emptySet())?.toMutableSet() ?: mutableSetOf()
+        alwaysShowCompare = prefs.getBoolean(KEY_ALWAYS_SHOW_COMPARE, false)
         currentBookIndex = prefs.getInt(KEY_LAST_BOOK_INDEX, 0).coerceIn(0, BIBLE_BOOKS.size - 1)
         currentChapter = prefs.getInt(KEY_LAST_CHAPTER, 1).coerceAtLeast(1)
 
@@ -628,7 +631,8 @@ class MainActivity : AppCompatActivity() {
                     themeName = currentTheme,
                     fontFamily = currentFontFamily,
                     fontSize = currentFontSize,
-                    primaryTranslationCode = currentPrimaryTranslation
+                    primaryTranslationCode = currentPrimaryTranslation,
+                    alwaysShowCompare = alwaysShowCompare
                 )
 
                 runOnUiThread {
@@ -670,6 +674,22 @@ class MainActivity : AppCompatActivity() {
 
         dialogView.findViewById<TextView>(R.id.tvManageTranslationsHeader)?.setTextColor(Color.parseColor(colors.titleColor))
         dialogView.findViewById<TextView>(R.id.tvFontSectionHeader)?.setTextColor(Color.parseColor(colors.titleColor))
+
+        val cbAlwaysShowCompare = dialogView.findViewById<CheckBox>(R.id.cbAlwaysShowCompare)
+        val tvAlwaysShowCompareLabel = dialogView.findViewById<TextView>(R.id.tvAlwaysShowCompareLabel)
+        tvAlwaysShowCompareLabel?.setTextColor(Color.parseColor(colors.titleColor))
+
+        cbAlwaysShowCompare?.isChecked = alwaysShowCompare
+        cbAlwaysShowCompare?.setOnCheckedChangeListener { _, isChecked ->
+            alwaysShowCompare = isChecked
+            getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_ALWAYS_SHOW_COMPARE, isChecked)
+                .apply()
+
+            loadCurrentChapter()
+            cachedSearchDialog = null
+        }
         dialogView.findViewById<TextView>(R.id.tvAboutAppHeader)?.setTextColor(Color.parseColor(colors.titleColor))
         dialogView.findViewById<TextView>(R.id.tvKeyFeaturesHeader)?.setTextColor(Color.parseColor(colors.titleColor))
         dialogView.findViewById<TextView>(R.id.tvCopyrightHeader)?.setTextColor(Color.parseColor(colors.titleColor))
