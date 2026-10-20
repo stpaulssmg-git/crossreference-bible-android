@@ -803,6 +803,15 @@ class MainActivity : AppCompatActivity() {
             showEbibleCatalogModal()
         }
 
+        val btnRefreshTranslations = dialogView.findViewById<Button>(R.id.btnRefreshTranslations)
+        btnRefreshTranslations?.setOnClickListener {
+            loadCurrentChapter()
+            cachedSearchDialog = null
+            bottomSheetDialog.dismiss()
+            showAboutModal()
+            Toast.makeText(this@MainActivity, "Translations list refreshed", Toast.LENGTH_SHORT).show()
+        }
+
         val containerTranslations = dialogView.findViewById<LinearLayout>(R.id.containerTranslations)
         val inflater = LayoutInflater.from(this)
 
@@ -1836,7 +1845,11 @@ class MainActivity : AppCompatActivity() {
 
                         val isPrevRtl = isRtlText(preview)
                         val styledPreview = preview.replace("#B71C1C", colors.refTitleColor)
-                        val finalPreviewText = if (isPrevRtl) "\u2067$styledPreview\u2069" else styledPreview
+                        val finalPreviewText = if (isPrevRtl) {
+                            "<div dir=\"rtl\" style=\"text-align: right;\">\u2067$styledPreview\u2069</div>"
+                        } else {
+                            styledPreview
+                        }
 
                         tvPreviewText.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                             Html.fromHtml(finalPreviewText, Html.FROM_HTML_MODE_LEGACY)
@@ -1846,10 +1859,12 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         if (isPrevRtl) {
-                            tvPreviewText.gravity = Gravity.END
+                            tvPreviewText.gravity = Gravity.END or Gravity.RIGHT
+                            tvPreviewText.textAlignment = View.TEXT_ALIGNMENT_VIEW_END
                             tvPreviewText.textDirection = View.TEXT_DIRECTION_RTL
                         } else {
-                            tvPreviewText.gravity = Gravity.START
+                            tvPreviewText.gravity = Gravity.START or Gravity.LEFT
+                            tvPreviewText.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
                             tvPreviewText.textDirection = View.TEXT_DIRECTION_LTR
                         }
 
