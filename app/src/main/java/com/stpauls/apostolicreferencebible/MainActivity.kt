@@ -48,6 +48,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.core.view.WindowCompat
 import androidx.core.widget.NestedScrollView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -546,6 +547,11 @@ class MainActivity : AppCompatActivity() {
             else -> "#1565C0"
         }
         cardCrossRefReturnBar.setCardBackgroundColor(Color.parseColor(returnBarBg))
+
+        val isLightStatusBg = themeName != "dark"
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = isLightStatusBg
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.statusBarColor = Color.parseColor(statusBg)
