@@ -799,6 +799,7 @@ class MainActivity : AppCompatActivity() {
                     .apply()
 
                 webView.evaluateJavascript("setFontFamily('$newFont')", null)
+                loadCurrentChapter()
             }
         }
 
