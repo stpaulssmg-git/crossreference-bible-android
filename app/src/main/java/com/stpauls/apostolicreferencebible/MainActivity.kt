@@ -14,11 +14,13 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.text.Editable
 import android.text.Html
+import android.text.Layout
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.TextPaint
 import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
+import android.text.style.AlignmentSpan
 import android.text.style.ClickableSpan
 import android.util.Log
 import android.util.TypedValue
@@ -1683,6 +1685,15 @@ class MainActivity : AppCompatActivity() {
             ssb.setSpan(wholeSpan, 0, formattedText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
 
+        if (isRtl) {
+            ssb.setSpan(
+                AlignmentSpan.Standard(Layout.Alignment.ALIGN_OPPOSITE),
+                0,
+                ssb.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
         return ssb
     }
 
@@ -1714,12 +1725,26 @@ class MainActivity : AppCompatActivity() {
 
         val formattedSourceRef = dbHelper.formatLocalizedReference(sourceRef, currentPrimaryTranslation)
         val isSourceRtl = isRtlText(formattedSourceRef)
-        tvSourceVerse?.text = if (isSourceRtl) "\u2067$formattedSourceRef\u2069" else formattedSourceRef
+        val finalSourceText = if (isSourceRtl) {
+            "<div dir=\"rtl\" style=\"text-align: right;\">\u2067$formattedSourceRef\u2069</div>"
+        } else {
+            formattedSourceRef
+        }
+
+        tvSourceVerse?.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            Html.fromHtml(finalSourceText, Html.FROM_HTML_MODE_LEGACY)
+        } else {
+            @Suppress("DEPRECATION")
+            Html.fromHtml(finalSourceText)
+        }
+
         if (isSourceRtl) {
-            tvSourceVerse?.gravity = Gravity.END
+            tvSourceVerse?.gravity = Gravity.END or Gravity.RIGHT
+            tvSourceVerse?.textAlignment = View.TEXT_ALIGNMENT_VIEW_END
             tvSourceVerse?.textDirection = View.TEXT_DIRECTION_RTL
         } else {
-            tvSourceVerse?.gravity = Gravity.START
+            tvSourceVerse?.gravity = Gravity.START or Gravity.LEFT
+            tvSourceVerse?.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
             tvSourceVerse?.textDirection = View.TEXT_DIRECTION_LTR
         }
 
