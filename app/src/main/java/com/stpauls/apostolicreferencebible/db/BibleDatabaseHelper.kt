@@ -71,9 +71,17 @@ class BibleDatabaseHelper(private val context: Context) :
     override fun onCreate(db: SQLiteDatabase) {}
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {}
 
+    var downloadedTranslationsMap: Map<String, TranslationInfo> = emptyMap()
+
     fun getDbFileName(translationCode: String): String {
-        val info = INSTALLED_TRANSLATIONS.find { it.code.equals(translationCode, ignoreCase = true) }
-        return info?.dbName ?: "${translationCode.lowercase().replace("/", "")}.db"
+        val upper = translationCode.uppercase()
+        val installedInfo = INSTALLED_TRANSLATIONS.find { it.code.equals(upper, ignoreCase = true) }
+        if (installedInfo != null) return installedInfo.dbName
+
+        val downloadedInfo = downloadedTranslationsMap[upper]
+        if (downloadedInfo != null) return downloadedInfo.dbName
+
+        return "${translationCode.lowercase().replace("/", "")}.db"
     }
 
     fun ensureDatabaseCopied(dbFileName: String) {

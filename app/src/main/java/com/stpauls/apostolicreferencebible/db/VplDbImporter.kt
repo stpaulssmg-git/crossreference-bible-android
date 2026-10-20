@@ -178,7 +178,7 @@ class VplDbImporter(private val context: Context) {
 
                                         val cNum = chapStr.toIntOrNull()
                                         val vNum = verseStr.toIntOrNull()
-                                        val normalizedBook = BOOK_NAME_MAP.keys.find { it.equals(bookRaw, ignoreCase = true) } ?: bookRaw.uppercase()
+                                        val normalizedBook = BibleDatabaseHelper(context).normalizeBookCode(bookRaw)
 
                                         if (cNum != null && vNum != null && verseText.isNotEmpty()) {
                                             stmt.clearBindings()

@@ -319,6 +319,7 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize helpers
         dbHelper = BibleDatabaseHelper(this)
+        dbHelper.downloadedTranslationsMap = downloadedTranslationsMap
         htmlEngine = HtmlEngine(this)
 
         // Initialize Views
