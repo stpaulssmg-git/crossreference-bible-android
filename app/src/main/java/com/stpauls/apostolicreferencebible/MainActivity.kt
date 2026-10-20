@@ -681,6 +681,22 @@ class MainActivity : AppCompatActivity() {
         dialogView.findViewById<TextView>(R.id.tvManageTranslationsHeader)?.setTextColor(Color.parseColor(colors.titleColor))
         dialogView.findViewById<TextView>(R.id.tvFontSectionHeader)?.setTextColor(Color.parseColor(colors.titleColor))
 
+        val btnToggleFontSection = dialogView.findViewById<LinearLayout>(R.id.btnToggleFontSection)
+        val ivFontSectionDropdown = dialogView.findViewById<ImageView>(R.id.ivFontSectionDropdown)
+        val layoutFontSectionContent = dialogView.findViewById<LinearLayout>(R.id.layoutFontSectionContent)
+
+        ivFontSectionDropdown?.setColorFilter(Color.parseColor(colors.titleColor))
+
+        btnToggleFontSection?.setOnClickListener {
+            if (layoutFontSectionContent.visibility == View.VISIBLE) {
+                layoutFontSectionContent.visibility = View.GONE
+                ivFontSectionDropdown.rotation = 0f
+            } else {
+                layoutFontSectionContent.visibility = View.VISIBLE
+                ivFontSectionDropdown.rotation = 180f
+            }
+        }
+
         val cbAlwaysShowCompare = dialogView.findViewById<CheckBox>(R.id.cbAlwaysShowCompare)
         val tvAlwaysShowCompareLabel = dialogView.findViewById<TextView>(R.id.tvAlwaysShowCompareLabel)
         tvAlwaysShowCompareLabel?.setTextColor(Color.parseColor(colors.titleColor))
@@ -1044,13 +1060,24 @@ class MainActivity : AppCompatActivity() {
         }
 
         val searchDialog = Dialog(this, R.style.FullScreenDialogTheme)
+        val colors = getModalThemeColors(currentTheme)
+
+        val searchWindow = searchDialog.window
+        if (searchWindow != null) {
+            searchWindow.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            searchWindow.statusBarColor = Color.parseColor(colors.expandedGridBg)
+
+            val isLight = currentTheme != "dark"
+            WindowCompat.getInsetsController(searchWindow, searchWindow.decorView).apply {
+                isAppearanceLightStatusBars = isLight
+            }
+        }
+
         val dialogView = LayoutInflater.from(this).inflate(
             R.layout.dialog_search,
             null,
             false
         )
-
-        val colors = getModalThemeColors(currentTheme)
 
         dialogView.findViewById<View>(R.id.searchContainer)?.setBackgroundColor(Color.parseColor(colors.sheetBg))
         dialogView.findViewById<View>(R.id.searchTopBar)?.setBackgroundColor(Color.parseColor(colors.expandedGridBg))
