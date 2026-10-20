@@ -294,7 +294,7 @@ class MainActivity : AppCompatActivity() {
         currentFontSize = prefs.getFloat(KEY_FONT_SIZE, 14f)
         currentFontFamily = prefs.getString(KEY_FONT_FAMILY, "sans") ?: "sans"
         currentPrimaryTranslation = prefs.getString(KEY_PRIMARY_TRANS, "KJV") ?: "KJV"
-        enabledTranslations = prefs.getStringSet(KEY_ENABLED_TRANS, setOf("KJV", "H/G", "ABG", "LXX", "T4T", "ABE", "NAS"))?.toMutableSet() ?: mutableSetOf("KJV", "H/G", "ABG", "LXX", "T4T", "ABE", "NAS")
+        enabledTranslations = prefs.getStringSet(KEY_ENABLED_TRANS, setOf("KJV", "H/G", "ABG", "LXX", "T4T"))?.toMutableSet() ?: mutableSetOf("KJV", "H/G", "ABG", "LXX", "T4T")
         deletedTranslations = prefs.getStringSet(KEY_DELETED_TRANS, emptySet())?.toMutableSet() ?: mutableSetOf()
         alwaysShowCompare = prefs.getBoolean(KEY_ALWAYS_SHOW_COMPARE, true)
         currentBookIndex = prefs.getInt(KEY_LAST_BOOK_INDEX, 0).coerceIn(0, BIBLE_BOOKS.size - 1)
@@ -760,10 +760,10 @@ class MainActivity : AppCompatActivity() {
             &copy; Charles Van der Pool (<a href="https://www.apostolicbible.com">www.apostolicbible.com</a>). Inclusion in this app does not imply endorsement by the author.<br><br>
             <b>Translation for Translators (T4T)</b><br>
             &copy; Ellis W. Deibler, Jr. / unfoldingWord. Licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.<br><br>
-            <b>Indian Revised Versions (KAN / TLG / TAM / HIN)</b><br>
-            Kannada, Telugu, Tamil, and Hindi IRV Bibles &copy; Bridge Connectivity Solutions Pvt. Ltd. / unfoldingWord. Licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.<br><br>
-            <b>Public Domain Translations (KJV / H/G / MAL / SPA / LXX)</b><br>
-            King James Version (KJV), Hebrew Masoretic &amp; Greek TR (H/G), Malayalam VPL, Spanish Reina Valera 1909 (SPA), and Charles Thomson LXX Septuagint (LXX) are in the Public Domain.
+            <b>Public Domain Translations (KJV / H/G / LXX)</b><br>
+            King James Version (KJV), Hebrew Masoretic &amp; Greek TR (H/G), and Charles Thomson LXX Septuagint (LXX) are in the Public Domain.<br><br>
+            <b>eBible.org Download Disclaimer</b><br>
+            Additional Bible translations downloaded via the online catalog remain the property and copyright of <a href="https://ebible.org">eBible.org</a> and their respective translators or publishing organizations. Downloaded translations are provided strictly for non-commercial personal study.
         """.trimIndent()
 
         tvCopyrightDetails?.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
