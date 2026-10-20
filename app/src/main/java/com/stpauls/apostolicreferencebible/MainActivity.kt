@@ -78,6 +78,7 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_LAST_BOOK_INDEX = "last_book_index"
         private const val KEY_LAST_CHAPTER = "last_chapter"
         private const val KEY_DELETED_TRANS = "deleted_translations"
+        private const val KEY_FIRST_LAUNCH = "is_first_launch"
         private val coreTranslations = setOf("KJV", "ABE", "ABG", "LXX", "T4T", "H/G", "HGB")
     }
 
@@ -350,8 +351,79 @@ class MainActivity : AppCompatActivity() {
         // Apply native header colors for saved theme
         applyNativeThemeUI(currentTheme)
 
-        // Load initial chapter (Genesis 1)
+        // Load initial chapter
         loadCurrentChapter()
+
+        // Prompt user to choose primary Bible on first install launch
+        checkAndShowFirstLaunchModal()
+    }
+
+    private fun checkAndShowFirstLaunchModal() {
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val isFirstLaunch = prefs.getBoolean(KEY_FIRST_LAUNCH, true)
+        if (isFirstLaunch) {
+            showFirstLaunchPrimarySelectorModal()
+        }
+    }
+
+    private fun showFirstLaunchPrimarySelectorModal() {
+        val bottomSheetDialog = BottomSheetDialog(this)
+        val dialogView = LayoutInflater.from(this).inflate(
+            R.layout.dialog_welcome_primary,
+            findViewById(android.R.id.content),
+            false
+        )
+
+        val colors = getModalThemeColors(currentTheme)
+        dialogView.findViewById<View>(R.id.welcomePrimaryContainer)?.setBackgroundColor(Color.parseColor(colors.sheetBg))
+        dialogView.findViewById<View>(R.id.vDragHandle)?.setBackgroundColor(Color.parseColor(colors.dragHandleColor))
+        dialogView.findViewById<TextView>(R.id.tvWelcomePrimaryTitle)?.setTextColor(Color.parseColor(colors.titleColor))
+        dialogView.findViewById<TextView>(R.id.tvWelcomePrimarySubtitle)?.setTextColor(Color.parseColor(colors.subtitleColor))
+        dialogView.findViewById<View>(R.id.vWelcomePrimaryDivider)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
+
+        val containerList = dialogView.findViewById<LinearLayout>(R.id.containerWelcomePrimaryList)
+        val inflater = LayoutInflater.from(this)
+        containerList?.removeAllViews()
+
+        for (trans in getAvailableTranslations()) {
+            val itemView = inflater.inflate(R.layout.item_quick_primary, containerList, false)
+            val rbQuickPrimary = itemView.findViewById<RadioButton>(R.id.rbQuickPrimary)
+            val tvQuickPrimaryLabel = itemView.findViewById<TextView>(R.id.tvQuickPrimaryLabel)
+
+            val isCurrentPrimary = trans.code.equals(currentPrimaryTranslation, ignoreCase = true)
+            rbQuickPrimary.isChecked = isCurrentPrimary
+            tvQuickPrimaryLabel.setTextColor(Color.parseColor(colors.titleColor))
+            tvQuickPrimaryLabel.text = "${trans.code} - ${trans.name}"
+
+            itemView.setOnClickListener {
+                currentPrimaryTranslation = trans.code
+                enabledTranslations.add(trans.code)
+
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(KEY_FIRST_LAUNCH, false)
+                    .putString(KEY_PRIMARY_TRANS, currentPrimaryTranslation)
+                    .putStringSet(KEY_ENABLED_TRANS, enabledTranslations)
+                    .apply()
+
+                loadCurrentChapter()
+                cachedSearchDialog = null
+                bottomSheetDialog.dismiss()
+                Toast.makeText(this@MainActivity, "Primary Translation set to ${trans.name}", Toast.LENGTH_SHORT).show()
+            }
+
+            containerList?.addView(itemView)
+        }
+
+        bottomSheetDialog.setCancelable(true)
+        bottomSheetDialog.setOnDismissListener {
+            getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_FIRST_LAUNCH, false)
+                .apply()
+        }
+        bottomSheetDialog.setContentView(dialogView)
+        bottomSheetDialog.show()
     }
 
     private fun showQuickPrimarySelectorModal() {
