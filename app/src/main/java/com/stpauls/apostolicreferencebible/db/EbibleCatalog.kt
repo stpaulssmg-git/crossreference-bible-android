@@ -46,4 +46,4 @@ val EBIBLE_CATALOG = listOf(
     EbibleCatalogItem("yor", "YOR", "Yoruba", "Nigeria / Benin", "Yoruba Bible", "https://ebible.org/Scriptures/yor_vpl.zip"),
     EbibleCatalogItem("ibo", "IBO", "Igbo", "Nigeria", "Igbo Union Bible", "https://ebible.org/Scriptures/ibo_vpl.zip"),
     EbibleCatalogItem("cmn2006", "CUV", "Chinese", "China / Worldwide", "Chinese Union Version 2006", "https://ebible.org/Scriptures/cmn2006_vpl.zip")
-)
+).sortedWith(compareBy({ it.language.lowercase() }, { it.title.lowercase() }))

@@ -1917,7 +1917,10 @@ class MainActivity : AppCompatActivity() {
         val rvList = dialogView.findViewById<RecyclerView>(R.id.rvCatalogList)
         rvList?.layoutManager = LinearLayoutManager(this)
 
-        val downloadedIds = downloadedTranslationsMap.keys.map { it.lowercase() }.toSet()
+        val downloadedIds = mutableSetOf<String>()
+        downloadedIds.addAll(downloadedTranslationsMap.keys.map { it.lowercase() })
+        downloadedIds.addAll(downloadedTranslationsMap.values.map { it.code.lowercase() })
+
         val adapter = EbibleCatalogAdapter(colors, downloadedIds) { item ->
             Toast.makeText(this@MainActivity, "Downloading ${item.title}...", Toast.LENGTH_SHORT).show()
             executor.execute {

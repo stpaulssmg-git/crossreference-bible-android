@@ -1,11 +1,10 @@
 package com.stpauls.apostolicreferencebible.ui
 
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
@@ -50,7 +49,7 @@ class EbibleCatalogAdapter(
         val cardView: CardView = itemView.findViewById(R.id.cardEbibleItem)
         val tvTitle: TextView = itemView.findViewById(R.id.tvEbibleTitle)
         val tvDetails: TextView = itemView.findViewById(R.id.tvEbibleDetails)
-        val btnDownload: Button = itemView.findViewById(R.id.btnDownloadEbible)
+        val btnDownloadIcon: ImageButton = itemView.findViewById(R.id.btnDownloadIcon)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CatalogViewHolder {
@@ -63,24 +62,24 @@ class EbibleCatalogAdapter(
 
         holder.cardView.setCardBackgroundColor(Color.parseColor(themeColors.expandedGridBg))
 
-        holder.tvTitle.text = item.title
+        holder.tvTitle.text = "${item.language} - ${item.title}"
         holder.tvTitle.setTextColor(Color.parseColor(themeColors.titleColor))
 
-        holder.tvDetails.text = "${item.language} • ${item.country}"
+        holder.tvDetails.text = item.country
         holder.tvDetails.setTextColor(Color.parseColor(themeColors.subtitleColor))
 
-        holder.btnDownload.backgroundTintList = ColorStateList.valueOf(Color.parseColor(themeColors.refTitleColor))
-
-        val isDownloaded = downloadedIds.contains(item.id.lowercase())
+        val isDownloaded = downloadedIds.contains(item.id.lowercase()) || downloadedIds.contains(item.code.lowercase())
         if (isDownloaded) {
-            holder.btnDownload.text = "Installed ✓"
-            holder.btnDownload.isEnabled = false
-            holder.btnDownload.alpha = 0.6f
+            holder.btnDownloadIcon.setImageResource(android.R.drawable.checkbox_on_background)
+            holder.btnDownloadIcon.isEnabled = false
+            holder.btnDownloadIcon.alpha = 0.4f
+            holder.btnDownloadIcon.clearColorFilter()
         } else {
-            holder.btnDownload.text = "⬇ Download"
-            holder.btnDownload.isEnabled = true
-            holder.btnDownload.alpha = 1.0f
-            holder.btnDownload.setOnClickListener {
+            holder.btnDownloadIcon.setImageResource(android.R.drawable.stat_sys_download)
+            holder.btnDownloadIcon.isEnabled = true
+            holder.btnDownloadIcon.alpha = 1.0f
+            holder.btnDownloadIcon.setColorFilter(Color.parseColor(themeColors.refTitleColor))
+            holder.btnDownloadIcon.setOnClickListener {
                 onDownloadClick(item)
             }
         }
