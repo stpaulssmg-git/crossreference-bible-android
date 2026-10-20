@@ -50,6 +50,14 @@
 
         </LinearLayout>
 
+        <ProgressBar
+            android:id="@+id/pbDownloadProgress"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="8dp"
+            android:visibility="gone"
+            style="?android:attr/progressBarStyleSmall" />
+
         <ImageButton
             android:id="@+id/btnDownloadIcon"
             android:layout_width="36dp"

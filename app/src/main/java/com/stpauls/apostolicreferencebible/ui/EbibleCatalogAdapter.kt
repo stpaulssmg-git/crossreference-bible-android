@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
@@ -20,12 +21,23 @@ class EbibleCatalogAdapter(
 
     private val allItems = mutableListOf<EbibleCatalogItem>()
     private val filteredItems = mutableListOf<EbibleCatalogItem>()
+    private val downloadingIds = mutableSetOf<String>()
 
     fun setCatalog(items: List<EbibleCatalogItem>) {
         allItems.clear()
         allItems.addAll(items)
         filteredItems.clear()
         filteredItems.addAll(items)
+        notifyDataSetChanged()
+    }
+
+    fun markDownloading(itemId: String) {
+        downloadingIds.add(itemId.lowercase())
+        notifyDataSetChanged()
+    }
+
+    fun markDownloadFailed(itemId: String) {
+        downloadingIds.remove(itemId.lowercase())
         notifyDataSetChanged()
     }
 
@@ -49,6 +61,7 @@ class EbibleCatalogAdapter(
         val cardView: CardView = itemView.findViewById(R.id.cardEbibleItem)
         val tvTitle: TextView = itemView.findViewById(R.id.tvEbibleTitle)
         val tvDetails: TextView = itemView.findViewById(R.id.tvEbibleDetails)
+        val pbProgress: ProgressBar = itemView.findViewById(R.id.pbDownloadProgress)
         val btnDownloadIcon: ImageButton = itemView.findViewById(R.id.btnDownloadIcon)
     }
 
@@ -69,17 +82,27 @@ class EbibleCatalogAdapter(
         holder.tvDetails.setTextColor(Color.parseColor(themeColors.subtitleColor))
 
         val isDownloaded = downloadedIds.contains(item.id.lowercase()) || downloadedIds.contains(item.code.lowercase())
-        if (isDownloaded) {
+        val isDownloading = downloadingIds.contains(item.id.lowercase())
+
+        if (isDownloading) {
+            holder.pbProgress.visibility = View.VISIBLE
+            holder.btnDownloadIcon.visibility = View.GONE
+        } else if (isDownloaded) {
+            holder.pbProgress.visibility = View.GONE
+            holder.btnDownloadIcon.visibility = View.VISIBLE
             holder.btnDownloadIcon.setImageResource(android.R.drawable.checkbox_on_background)
             holder.btnDownloadIcon.isEnabled = false
             holder.btnDownloadIcon.alpha = 0.4f
             holder.btnDownloadIcon.clearColorFilter()
         } else {
+            holder.pbProgress.visibility = View.GONE
+            holder.btnDownloadIcon.visibility = View.VISIBLE
             holder.btnDownloadIcon.setImageResource(android.R.drawable.stat_sys_download)
             holder.btnDownloadIcon.isEnabled = true
             holder.btnDownloadIcon.alpha = 1.0f
             holder.btnDownloadIcon.setColorFilter(Color.parseColor(themeColors.refTitleColor))
             holder.btnDownloadIcon.setOnClickListener {
+                markDownloading(item.id)
                 onDownloadClick(item)
             }
         }

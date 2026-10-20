@@ -1446,19 +1446,20 @@ class MainActivity : AppCompatActivity() {
         btnTabNT?.background?.setColorFilter(Color.parseColor(colors.chipBg), PorterDuff.Mode.SRC_IN)
 
         val rvBooks = dialogView.findViewById<RecyclerView>(R.id.rvBooks)
-        rvBooks.layoutManager = LinearLayoutManager(this)
+        val layoutManager = LinearLayoutManager(this)
+        rvBooks?.layoutManager = layoutManager
 
         btnTabOT?.setOnClickListener {
-            rvBooks.scrollToPosition(0)
+            layoutManager.scrollToPositionWithOffset(0, 0)
         }
 
         btnTabNT?.setOnClickListener {
-            rvBooks.scrollToPosition(39)
+            layoutManager.scrollToPositionWithOffset(39, 0)
         }
 
         val adapter = BookRecyclerAdapter(
             context = this,
-            initialExpandedPosition = currentBookIndex,
+            initialExpandedPosition = -1,
             themeColors = colors,
             primaryTranslationCode = currentPrimaryTranslation
         ) { selectedBookIdx, selectedChapterNum ->
@@ -1921,7 +1922,8 @@ class MainActivity : AppCompatActivity() {
         downloadedIds.addAll(downloadedTranslationsMap.keys.map { it.lowercase() })
         downloadedIds.addAll(downloadedTranslationsMap.values.map { it.code.lowercase() })
 
-        val adapter = EbibleCatalogAdapter(colors, downloadedIds) { item ->
+        lateinit var adapter: EbibleCatalogAdapter
+        adapter = EbibleCatalogAdapter(colors, downloadedIds) { item ->
             Toast.makeText(this@MainActivity, "Downloading ${item.title}...", Toast.LENGTH_SHORT).show()
             executor.execute {
                 val importer = VplDbImporter(this@MainActivity)
@@ -1949,12 +1951,12 @@ class MainActivity : AppCompatActivity() {
                             loadCurrentChapter()
                             cachedSearchDialog = null
                             dialog.dismiss()
-                            showAboutModal()
                             Toast.makeText(this@MainActivity, "${item.title} successfully installed!", Toast.LENGTH_LONG).show()
                         }
                     },
                     onError = { errorMsg ->
                         runOnUiThread {
+                            adapter.markDownloadFailed(item.id)
                             Toast.makeText(this@MainActivity, errorMsg, Toast.LENGTH_LONG).show()
                         }
                     }
