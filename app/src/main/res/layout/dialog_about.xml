@@ -121,19 +121,6 @@
                 android:orientation="vertical"
                 android:visibility="visible">
 
-                <!-- Download Bibles Button -->
-                <Button
-                    android:id="@+id/btnOpenEbibleCatalog"
-                    android:layout_width="match_parent"
-                    android:layout_height="38dp"
-                    android:layout_marginTop="4dp"
-                    android:layout_marginBottom="8dp"
-                    android:text="＋ Download Bibles (ebible.org)"
-                    android:textColor="#FFFFFF"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:backgroundTint="#8B0000" />
-
                 <!-- Always Show Comparison CheckBox -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -236,6 +223,19 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical" />
+
+                <!-- Download Bibles Button (Placed below default versions list) -->
+                <Button
+                    android:id="@+id/btnOpenEbibleCatalog"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="6dp"
+                    android:text="＋ Download Bibles (ebible.org)"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:backgroundTint="#8B0000" />
 
             </LinearLayout>
 

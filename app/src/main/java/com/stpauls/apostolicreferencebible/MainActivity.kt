@@ -90,7 +90,7 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_FIRST_LAUNCH = "is_first_launch"
         private const val KEY_ALWAYS_SHOW_COMPARE = "always_show_compare"
         private const val KEY_DOWNLOADED_TRANS = "downloaded_ebible_translations"
-        private val coreTranslations = setOf("KJV", "ABE", "ABG", "LXX", "T4T", "H/G", "HGB")
+        private val coreTranslations = setOf("KJV", "ABE", "ABG", "LXX", "T4T", "H/G", "HGB", "NAS")
     }
 
     private var alwaysShowCompare = false
@@ -142,14 +142,14 @@ class MainActivity : AppCompatActivity() {
 
     private var currentBookIndex = 0
     private var currentChapter = 1
-    private var currentTheme = "crimson" // Options: "warm", "crimson", "teal", "dark"
+    private var currentTheme = "dark" // Options: "dark", "teal", "warm", "crimson"
     private var currentFontSize = 14f // Lowest initial zoom level by default
     private var currentFontFamily = "sans" // Options: "sans", "serif", "mono", "rounded"
 
     private var currentPrimaryTranslation = "KJV"
-    private var enabledTranslations = mutableSetOf("KJV", "ABE")
+    private var enabledTranslations = mutableSetOf("KJV", "H/G", "ABG", "LXX", "T4T", "ABE", "NAS")
 
-    private val themeList = listOf("crimson", "warm", "teal", "dark")
+    private val themeList = listOf("dark", "teal", "warm", "crimson")
 
     // Navigation Backstack History for Cross-Reference study jumps
     data class NavState(
@@ -288,15 +288,15 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        // Load saved preferences with KJV as primary and ABE as compare by default on first install
+        // Load saved preferences with KJV as primary, dark theme, and secondary translations enabled on first install
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        currentTheme = prefs.getString(KEY_THEME, "crimson") ?: "crimson"
+        currentTheme = prefs.getString(KEY_THEME, "dark") ?: "dark"
         currentFontSize = prefs.getFloat(KEY_FONT_SIZE, 14f)
         currentFontFamily = prefs.getString(KEY_FONT_FAMILY, "sans") ?: "sans"
         currentPrimaryTranslation = prefs.getString(KEY_PRIMARY_TRANS, "KJV") ?: "KJV"
-        enabledTranslations = prefs.getStringSet(KEY_ENABLED_TRANS, setOf("KJV", "ABE"))?.toMutableSet() ?: mutableSetOf("KJV", "ABE")
+        enabledTranslations = prefs.getStringSet(KEY_ENABLED_TRANS, setOf("KJV", "H/G", "ABG", "LXX", "T4T", "ABE", "NAS"))?.toMutableSet() ?: mutableSetOf("KJV", "H/G", "ABG", "LXX", "T4T", "ABE", "NAS")
         deletedTranslations = prefs.getStringSet(KEY_DELETED_TRANS, emptySet())?.toMutableSet() ?: mutableSetOf()
-        alwaysShowCompare = prefs.getBoolean(KEY_ALWAYS_SHOW_COMPARE, false)
+        alwaysShowCompare = prefs.getBoolean(KEY_ALWAYS_SHOW_COMPARE, true)
         currentBookIndex = prefs.getInt(KEY_LAST_BOOK_INDEX, 0).coerceIn(0, BIBLE_BOOKS.size - 1)
         currentChapter = prefs.getInt(KEY_LAST_CHAPTER, 1).coerceAtLeast(1)
 
@@ -390,77 +390,6 @@ class MainActivity : AppCompatActivity() {
 
         // Load initial chapter
         loadCurrentChapter()
-
-        // Prompt user to choose primary Bible on first install launch
-        checkAndShowFirstLaunchModal()
-    }
-
-    private fun checkAndShowFirstLaunchModal() {
-        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        val isFirstLaunch = prefs.getBoolean(KEY_FIRST_LAUNCH, true)
-        if (isFirstLaunch) {
-            showFirstLaunchPrimarySelectorModal()
-        }
-    }
-
-    private fun showFirstLaunchPrimarySelectorModal() {
-        val bottomSheetDialog = BottomSheetDialog(this)
-        val dialogView = LayoutInflater.from(this).inflate(
-            R.layout.dialog_welcome_primary,
-            findViewById(android.R.id.content),
-            false
-        )
-
-        val colors = getModalThemeColors(currentTheme)
-        dialogView.findViewById<View>(R.id.welcomePrimaryContainer)?.setBackgroundColor(Color.parseColor(colors.sheetBg))
-        dialogView.findViewById<View>(R.id.vDragHandle)?.setBackgroundColor(Color.parseColor(colors.dragHandleColor))
-        dialogView.findViewById<TextView>(R.id.tvWelcomePrimaryTitle)?.setTextColor(Color.parseColor(colors.titleColor))
-        dialogView.findViewById<TextView>(R.id.tvWelcomePrimarySubtitle)?.setTextColor(Color.parseColor(colors.subtitleColor))
-        dialogView.findViewById<View>(R.id.vWelcomePrimaryDivider)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
-
-        val containerList = dialogView.findViewById<LinearLayout>(R.id.containerWelcomePrimaryList)
-        val inflater = LayoutInflater.from(this)
-        containerList?.removeAllViews()
-
-        for (trans in getAvailableTranslations()) {
-            val itemView = inflater.inflate(R.layout.item_quick_primary, containerList, false)
-            val rbQuickPrimary = itemView.findViewById<RadioButton>(R.id.rbQuickPrimary)
-            val tvQuickPrimaryLabel = itemView.findViewById<TextView>(R.id.tvQuickPrimaryLabel)
-
-            val isCurrentPrimary = trans.code.equals(currentPrimaryTranslation, ignoreCase = true)
-            rbQuickPrimary.isChecked = isCurrentPrimary
-            tvQuickPrimaryLabel.setTextColor(Color.parseColor(colors.titleColor))
-            tvQuickPrimaryLabel.text = "${trans.code} - ${trans.name}"
-
-            itemView.setOnClickListener {
-                currentPrimaryTranslation = trans.code
-                enabledTranslations.add(trans.code)
-
-                getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                    .edit()
-                    .putBoolean(KEY_FIRST_LAUNCH, false)
-                    .putString(KEY_PRIMARY_TRANS, currentPrimaryTranslation)
-                    .putStringSet(KEY_ENABLED_TRANS, enabledTranslations)
-                    .apply()
-
-                loadCurrentChapter()
-                cachedSearchDialog = null
-                bottomSheetDialog.dismiss()
-                Toast.makeText(this@MainActivity, "Primary Translation set to ${trans.name}", Toast.LENGTH_SHORT).show()
-            }
-
-            containerList?.addView(itemView)
-        }
-
-        bottomSheetDialog.setCancelable(true)
-        bottomSheetDialog.setOnDismissListener {
-            getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                .edit()
-                .putBoolean(KEY_FIRST_LAUNCH, false)
-                .apply()
-        }
-        bottomSheetDialog.setContentView(dialogView)
-        bottomSheetDialog.show()
     }
 
     private fun showQuickPrimarySelectorModal() {
@@ -1505,8 +1434,27 @@ class MainActivity : AppCompatActivity() {
         dialogView.findViewById<TextView>(R.id.tvPickerTitle)?.setTextColor(Color.parseColor(colors.titleColor))
         dialogView.findViewById<View>(R.id.vPickerDivider)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
 
+        val btnTabOT = dialogView.findViewById<TextView>(R.id.btnTabOT)
+        val btnTabNT = dialogView.findViewById<TextView>(R.id.btnTabNT)
+
+        btnTabOT?.setTextColor(Color.parseColor(colors.titleColor))
+        btnTabNT?.setTextColor(Color.parseColor(colors.titleColor))
+
+        @Suppress("DEPRECATION")
+        btnTabOT?.background?.setColorFilter(Color.parseColor(colors.chipBg), PorterDuff.Mode.SRC_IN)
+        @Suppress("DEPRECATION")
+        btnTabNT?.background?.setColorFilter(Color.parseColor(colors.chipBg), PorterDuff.Mode.SRC_IN)
+
         val rvBooks = dialogView.findViewById<RecyclerView>(R.id.rvBooks)
         rvBooks.layoutManager = LinearLayoutManager(this)
+
+        btnTabOT?.setOnClickListener {
+            rvBooks.scrollToPosition(0)
+        }
+
+        btnTabNT?.setOnClickListener {
+            rvBooks.scrollToPosition(39)
+        }
 
         val adapter = BookRecyclerAdapter(
             context = this,

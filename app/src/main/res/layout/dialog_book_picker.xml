@@ -24,11 +24,51 @@
         android:id="@+id/tvPickerTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="8dp"
         android:text="Select Book &amp; Chapter"
         android:textColor="#1C1B1F"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:textStyle="bold" />
+
+    <!-- OT / NT Quick Switcher Tabs -->
+    <LinearLayout
+        android:id="@+id/layoutTestamentTabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/btnTabOT"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_theme_letter_chip"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="Old Testament (39)"
+            android:textColor="#1C1B1F"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnTabNT"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_theme_letter_chip"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="New Testament (27)"
+            android:textColor="#1C1B1F"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
 
     <View
         android:id="@+id/vPickerDivider"
