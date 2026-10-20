@@ -45,6 +45,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.widget.NestedScrollView
@@ -76,7 +77,13 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_COMPARE_ORDER = "compare_translation_order"
         private const val KEY_LAST_BOOK_INDEX = "last_book_index"
         private const val KEY_LAST_CHAPTER = "last_chapter"
+        private const val KEY_DELETED_TRANS = "deleted_translations"
+        private val coreTranslations = setOf("KJV", "ABE", "ABG", "LXX", "T4T", "H/G", "HGB")
     }
+
+    private var deletedTranslations = mutableSetOf<String>()
+
+    private fun getAvailableTranslations() = INSTALLED_TRANSLATIONS.filter { !deletedTranslations.contains(it.code) }
 
     private lateinit var webView: WebView
     private lateinit var tvHeaderTitle: TextView
@@ -269,6 +276,7 @@ class MainActivity : AppCompatActivity() {
         currentFontFamily = prefs.getString(KEY_FONT_FAMILY, "sans") ?: "sans"
         currentPrimaryTranslation = prefs.getString(KEY_PRIMARY_TRANS, "KJV") ?: "KJV"
         enabledTranslations = prefs.getStringSet(KEY_ENABLED_TRANS, setOf("KJV", "ABE"))?.toMutableSet() ?: mutableSetOf("KJV", "ABE")
+        deletedTranslations = prefs.getStringSet(KEY_DELETED_TRANS, emptySet())?.toMutableSet() ?: mutableSetOf()
         currentBookIndex = prefs.getInt(KEY_LAST_BOOK_INDEX, 0).coerceIn(0, BIBLE_BOOKS.size - 1)
         currentChapter = prefs.getInt(KEY_LAST_CHAPTER, 1).coerceAtLeast(1)
 
@@ -364,7 +372,7 @@ class MainActivity : AppCompatActivity() {
         val inflater = LayoutInflater.from(this)
         containerList?.removeAllViews()
 
-        for (trans in INSTALLED_TRANSLATIONS) {
+        for (trans in getAvailableTranslations()) {
             val itemView = inflater.inflate(R.layout.item_quick_primary, containerList, false)
             val rbQuickPrimary = itemView.findViewById<RadioButton>(R.id.rbQuickPrimary)
             val tvQuickPrimaryLabel = itemView.findViewById<TextView>(R.id.tvQuickPrimaryLabel)
@@ -696,17 +704,53 @@ class MainActivity : AppCompatActivity() {
 
         containerTranslations?.removeAllViews()
 
-        for (trans in INSTALLED_TRANSLATIONS) {
+        for (trans in getAvailableTranslations()) {
             val rowView = inflater.inflate(R.layout.item_translation_setting, containerTranslations, false)
             val tvTransLabel = rowView.findViewById<TextView>(R.id.tvTransLabel)
             val rbTransPrimary = rowView.findViewById<RadioButton>(R.id.rbTransPrimary)
             val cbTransEnable = rowView.findViewById<CheckBox>(R.id.cbTransEnable)
+            val btnDeleteTrans = rowView.findViewById<ImageButton>(R.id.btnDeleteTrans)
 
             tvTransLabel.setTextColor(Color.parseColor(colors.titleColor))
             tvTransLabel.text = "${trans.code} - ${trans.name}"
 
             radioButtonsMap[trans.code] = rbTransPrimary
             checkBoxesMap[trans.code] = cbTransEnable
+
+            val isCore = coreTranslations.contains(trans.code.uppercase())
+            if (!isCore) {
+                btnDeleteTrans.visibility = View.VISIBLE
+                btnDeleteTrans.setOnClickListener {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle("Delete ${trans.name}?")
+                        .setMessage("Are you sure you want to delete the ${trans.name} database from storage?")
+                        .setPositiveButton("Delete") { _, _ ->
+                            deleteDatabase(trans.dbName)
+                            deletedTranslations.add(trans.code)
+                            enabledTranslations.remove(trans.code)
+
+                            getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                                .edit()
+                                .putStringSet(KEY_DELETED_TRANS, deletedTranslations)
+                                .putStringSet(KEY_ENABLED_TRANS, enabledTranslations)
+                                .apply()
+
+                            if (currentPrimaryTranslation.equals(trans.code, ignoreCase = true)) {
+                                currentPrimaryTranslation = "KJV"
+                                saveTranslationPreferences()
+                            }
+
+                            loadCurrentChapter()
+                            cachedSearchDialog = null
+                            bottomSheetDialog.dismiss()
+                            Toast.makeText(this@MainActivity, "${trans.name} database deleted", Toast.LENGTH_SHORT).show()
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                }
+            } else {
+                btnDeleteTrans.visibility = View.GONE
+            }
 
             rbTransPrimary.setOnClickListener {
                 if (!currentPrimaryTranslation.equals(trans.code, ignoreCase = true)) {

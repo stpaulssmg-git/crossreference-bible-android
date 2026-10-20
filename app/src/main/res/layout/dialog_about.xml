@@ -143,7 +143,7 @@
 
                     <TextView
                         android:id="@+id/tvColPrimary"
-                        android:layout_width="64dp"
+                        android:layout_width="52dp"
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:text="Primary"
@@ -154,10 +154,21 @@
 
                     <TextView
                         android:id="@+id/tvColCompare"
-                        android:layout_width="64dp"
+                        android:layout_width="52dp"
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:text="Compare"
+                        android:textColor="#757575"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:singleLine="true" />
+
+                    <TextView
+                        android:id="@+id/tvColDelete"
+                        android:layout_width="38dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text=""
                         android:textColor="#757575"
                         android:textSize="11sp"
                         android:textStyle="bold"
