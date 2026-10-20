@@ -57,12 +57,19 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.stpauls.apostolicreferencebible.db.BIBLE_BOOKS
 import com.stpauls.apostolicreferencebible.db.BibleDatabaseHelper
+import com.stpauls.apostolicreferencebible.db.EBIBLE_CATALOG
 import com.stpauls.apostolicreferencebible.db.INSTALLED_TRANSLATIONS
 import com.stpauls.apostolicreferencebible.db.TRANSLATION_MAP
+import com.stpauls.apostolicreferencebible.db.TranslationInfo
+import com.stpauls.apostolicreferencebible.db.VplDbImporter
 import com.stpauls.apostolicreferencebible.db.getLocalizedBookName
 import com.stpauls.apostolicreferencebible.engine.HtmlEngine
 import com.stpauls.apostolicreferencebible.ui.BookRecyclerAdapter
+import com.stpauls.apostolicreferencebible.ui.EbibleCatalogAdapter
 import com.stpauls.apostolicreferencebible.ui.SearchResultAdapter
+import org.json.JSONArray
+import org.json.JSONObject
+import java.util.LinkedHashMap
 import java.util.concurrent.Executors
 import kotlin.math.abs
 
@@ -82,13 +89,20 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_DELETED_TRANS = "deleted_translations"
         private const val KEY_FIRST_LAUNCH = "is_first_launch"
         private const val KEY_ALWAYS_SHOW_COMPARE = "always_show_compare"
+        private const val KEY_DOWNLOADED_TRANS = "downloaded_ebible_translations"
         private val coreTranslations = setOf("KJV", "ABE", "ABG", "LXX", "T4T", "H/G", "HGB")
     }
 
     private var alwaysShowCompare = false
     private var deletedTranslations = mutableSetOf<String>()
+    private var downloadedTranslationsMap = LinkedHashMap<String, TranslationInfo>()
 
-    private fun getAvailableTranslations() = INSTALLED_TRANSLATIONS.filter { !deletedTranslations.contains(it.code) }
+    private fun getAvailableTranslations(): List<TranslationInfo> {
+        val list = mutableListOf<TranslationInfo>()
+        list.addAll(INSTALLED_TRANSLATIONS)
+        list.addAll(downloadedTranslationsMap.values)
+        return list.filter { !deletedTranslations.contains(it.code) }
+    }
 
     private lateinit var webView: WebView
     private lateinit var tvHeaderTitle: TextView
@@ -285,6 +299,23 @@ class MainActivity : AppCompatActivity() {
         alwaysShowCompare = prefs.getBoolean(KEY_ALWAYS_SHOW_COMPARE, false)
         currentBookIndex = prefs.getInt(KEY_LAST_BOOK_INDEX, 0).coerceIn(0, BIBLE_BOOKS.size - 1)
         currentChapter = prefs.getInt(KEY_LAST_CHAPTER, 1).coerceAtLeast(1)
+
+        val downloadedJson = prefs.getString(KEY_DOWNLOADED_TRANS, "") ?: ""
+        if (downloadedJson.isNotEmpty()) {
+            try {
+                val array = JSONArray(downloadedJson)
+                for (i in 0 until array.length()) {
+                    val obj = array.getJSONObject(i)
+                    val code = obj.getString("code")
+                    val name = obj.getString("name")
+                    val dbName = obj.getString("dbName")
+                    val info = TranslationInfo(code, name, dbName, isPrimary = false, isEnabled = true)
+                    downloadedTranslationsMap[code.uppercase()] = info
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error parsing downloaded translations JSON", e)
+            }
+        }
 
         // Initialize helpers
         dbHelper = BibleDatabaseHelper(this)
@@ -835,6 +866,11 @@ class MainActivity : AppCompatActivity() {
                 layoutManageTranslationsContent.visibility = View.VISIBLE
                 ivManageTranslationsDropdown.rotation = 180f
             }
+        }
+
+        val btnOpenEbibleCatalog = dialogView.findViewById<Button>(R.id.btnOpenEbibleCatalog)
+        btnOpenEbibleCatalog?.setOnClickListener {
+            showEbibleCatalogModal()
         }
 
         val containerTranslations = dialogView.findViewById<LinearLayout>(R.id.containerTranslations)
@@ -1879,6 +1915,117 @@ class MainActivity : AppCompatActivity() {
                 bottomSheetDialog.show()
             }
         }
+    }
+
+    private fun saveDownloadedTranslations() {
+        val array = JSONArray()
+        for (info in downloadedTranslationsMap.values) {
+            val obj = JSONObject()
+            obj.put("code", info.code)
+            obj.put("name", info.name)
+            obj.put("dbName", info.dbName)
+            array.put(obj)
+        }
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+            .edit()
+            .putString(KEY_DOWNLOADED_TRANS, array.toString())
+            .apply()
+    }
+
+    private fun showEbibleCatalogModal() {
+        val dialog = Dialog(this, R.style.FullScreenDialogTheme)
+        val dialogView = LayoutInflater.from(this).inflate(
+            R.layout.dialog_ebible_catalog,
+            null,
+            false
+        )
+
+        val colors = getModalThemeColors(currentTheme)
+        val searchWindow = dialog.window
+        if (searchWindow != null) {
+            searchWindow.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            searchWindow.statusBarColor = Color.parseColor(colors.expandedGridBg)
+
+            val isLight = currentTheme != "dark"
+            WindowCompat.getInsetsController(searchWindow, searchWindow.decorView).apply {
+                isAppearanceLightStatusBars = isLight
+            }
+        }
+
+        dialogView.findViewById<View>(R.id.catalogContainer)?.setBackgroundColor(Color.parseColor(colors.sheetBg))
+        dialogView.findViewById<View>(R.id.catalogTopBar)?.setBackgroundColor(Color.parseColor(colors.expandedGridBg))
+        dialogView.findViewById<TextView>(R.id.tvCatalogTitle)?.setTextColor(Color.parseColor(colors.titleColor))
+        dialogView.findViewById<View>(R.id.vCatalogDivider)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
+
+        val btnClose = dialogView.findViewById<ImageButton>(R.id.btnCloseCatalog)
+        btnClose?.setColorFilter(Color.parseColor(colors.titleColor))
+        btnClose?.setOnClickListener { dialog.dismiss() }
+
+        val etSearch = dialogView.findViewById<EditText>(R.id.etCatalogSearch)
+        etSearch?.setTextColor(Color.parseColor(colors.titleColor))
+        etSearch?.setHintTextColor(Color.parseColor(colors.subtitleColor))
+
+        val rvList = dialogView.findViewById<RecyclerView>(R.id.rvCatalogList)
+        rvList?.layoutManager = LinearLayoutManager(this)
+
+        val downloadedIds = downloadedTranslationsMap.keys.map { it.lowercase() }.toSet()
+        val adapter = EbibleCatalogAdapter(colors, downloadedIds) { item ->
+            Toast.makeText(this@MainActivity, "Downloading ${item.title}...", Toast.LENGTH_SHORT).show()
+            executor.execute {
+                val importer = VplDbImporter(this@MainActivity)
+                importer.downloadAndBuildDb(
+                    item = item,
+                    onProgress = { statusText ->
+                        runOnUiThread {
+                            Toast.makeText(this@MainActivity, statusText, Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    onSuccess = { dbName ->
+                        runOnUiThread {
+                            val newTransInfo = TranslationInfo(
+                                code = item.code.uppercase(),
+                                name = "${item.language} (${item.title})",
+                                dbName = dbName,
+                                isPrimary = false,
+                                isEnabled = true
+                            )
+                            downloadedTranslationsMap[item.code.uppercase()] = newTransInfo
+                            enabledTranslations.add(item.code.uppercase())
+                            saveDownloadedTranslations()
+                            saveTranslationPreferences()
+
+                            loadCurrentChapter()
+                            cachedSearchDialog = null
+                            dialog.dismiss()
+                            Toast.makeText(this@MainActivity, "${item.title} successfully installed!", Toast.LENGTH_LONG).show()
+                        }
+                    },
+                    onError = { errorMsg ->
+                        runOnUiThread {
+                            Toast.makeText(this@MainActivity, errorMsg, Toast.LENGTH_LONG).show()
+                        }
+                    }
+                )
+            }
+        }
+
+        adapter.setCatalog(EBIBLE_CATALOG)
+        rvList?.adapter = adapter
+
+        etSearch?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                adapter.filter(s?.toString().orEmpty())
+            }
+        })
+
+        dialog.setContentView(dialogView)
+        dialog.window?.setLayout(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT
+        )
+        dialog.show()
     }
 
     override fun onDestroy() {
