@@ -703,16 +703,28 @@ class MainActivity : AppCompatActivity() {
         // Bind Font Selector Radio Group in About Modal Sheet
         val rbSans = dialogView.findViewById<RadioButton>(R.id.rbAboutFontSans)
         val rbSerif = dialogView.findViewById<RadioButton>(R.id.rbAboutFontSerif)
+        val rbGaramond = dialogView.findViewById<RadioButton>(R.id.rbAboutFontGaramond)
+        val rbPalatino = dialogView.findViewById<RadioButton>(R.id.rbAboutFontPalatino)
+        val rbBaskerville = dialogView.findViewById<RadioButton>(R.id.rbAboutFontBaskerville)
+        val rbLexend = dialogView.findViewById<RadioButton>(R.id.rbAboutFontLexend)
         val rbMono = dialogView.findViewById<RadioButton>(R.id.rbAboutFontMono)
         val rbRounded = dialogView.findViewById<RadioButton>(R.id.rbAboutFontRounded)
 
         rbSans?.setTextColor(Color.parseColor(colors.titleColor))
         rbSerif?.setTextColor(Color.parseColor(colors.titleColor))
+        rbGaramond?.setTextColor(Color.parseColor(colors.titleColor))
+        rbPalatino?.setTextColor(Color.parseColor(colors.titleColor))
+        rbBaskerville?.setTextColor(Color.parseColor(colors.titleColor))
+        rbLexend?.setTextColor(Color.parseColor(colors.titleColor))
         rbMono?.setTextColor(Color.parseColor(colors.titleColor))
         rbRounded?.setTextColor(Color.parseColor(colors.titleColor))
 
         when (currentFontFamily) {
             "serif" -> rbSerif?.isChecked = true
+            "garamond" -> rbGaramond?.isChecked = true
+            "palatino" -> rbPalatino?.isChecked = true
+            "baskerville" -> rbBaskerville?.isChecked = true
+            "lexend" -> rbLexend?.isChecked = true
             "mono" -> rbMono?.isChecked = true
             "rounded" -> rbRounded?.isChecked = true
             else -> rbSans?.isChecked = true
@@ -722,6 +734,10 @@ class MainActivity : AppCompatActivity() {
         rgAboutFontGroup?.setOnCheckedChangeListener { _, checkedId ->
             val newFont = when (checkedId) {
                 R.id.rbAboutFontSerif -> "serif"
+                R.id.rbAboutFontGaramond -> "garamond"
+                R.id.rbAboutFontPalatino -> "palatino"
+                R.id.rbAboutFontBaskerville -> "baskerville"
+                R.id.rbAboutFontLexend -> "lexend"
                 R.id.rbAboutFontMono -> "mono"
                 R.id.rbAboutFontRounded -> "rounded"
                 else -> "sans"

@@ -257,8 +257,8 @@
                     android:id="@+id/rbAboutFontSans"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
                     android:text="Sans-Serif (Modern / Clean)"
                     android:textColor="#1C1B1F"
                     android:textSize="12sp" />
@@ -267,9 +267,49 @@
                     android:id="@+id/rbAboutFontSerif"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp"
-                    android:text="Serif (Georgia / Literary Book Style)"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
+                    android:text="Georgia (Literary Book Style)"
+                    android:textColor="#1C1B1F"
+                    android:textSize="12sp" />
+
+                <RadioButton
+                    android:id="@+id/rbAboutFontGaramond"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
+                    android:text="Garamond (Classic Paper Bible)"
+                    android:textColor="#1C1B1F"
+                    android:textSize="12sp" />
+
+                <RadioButton
+                    android:id="@+id/rbAboutFontPalatino"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
+                    android:text="Palatino (Editorial Typography)"
+                    android:textColor="#1C1B1F"
+                    android:textSize="12sp" />
+
+                <RadioButton
+                    android:id="@+id/rbAboutFontBaskerville"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
+                    android:text="Baskerville (Traditional Typeface)"
+                    android:textColor="#1C1B1F"
+                    android:textSize="12sp" />
+
+                <RadioButton
+                    android:id="@+id/rbAboutFontLexend"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
+                    android:text="Lexend (High Readability &amp; Focus)"
                     android:textColor="#1C1B1F"
                     android:textSize="12sp" />
 
@@ -277,8 +317,8 @@
                     android:id="@+id/rbAboutFontMono"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
                     android:text="Monospace (Fixed Pitch)"
                     android:textColor="#1C1B1F"
                     android:textSize="12sp" />
@@ -287,8 +327,8 @@
                     android:id="@+id/rbAboutFontRounded"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
                     android:text="Rounded (Casual / Trebuchet)"
                     android:textColor="#1C1B1F"
                     android:textSize="12sp" />
