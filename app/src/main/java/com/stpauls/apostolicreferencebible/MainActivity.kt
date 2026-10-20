@@ -1,6 +1,7 @@
 package com.stpauls.apostolicreferencebible
 
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.app.Dialog
 import android.graphics.Color
 import android.graphics.PorterDuff
@@ -555,6 +556,31 @@ class MainActivity : AppCompatActivity() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.statusBarColor = Color.parseColor(statusBg)
+        }
+
+        // Update Android Recents Task Switcher Header Color
+        val primaryThemeColor = Color.parseColor(when (themeName) {
+            "crimson" -> "#8B0000"
+            "teal" -> "#005F60"
+            "dark" -> "#121212"
+            else -> "#1565C0" // "warm"
+        })
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val taskDesc = ActivityManager.TaskDescription.Builder()
+                .setPrimaryColor(primaryThemeColor)
+                .build()
+            setTaskDescription(taskDesc)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            @Suppress("DEPRECATION")
+            val taskDesc = ActivityManager.TaskDescription("Apostolic Reference Bible", R.mipmap.ic_launcher, primaryThemeColor)
+            @Suppress("DEPRECATION")
+            setTaskDescription(taskDesc)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            @Suppress("DEPRECATION")
+            val taskDesc = ActivityManager.TaskDescription("Apostolic Reference Bible", null, primaryThemeColor)
+            @Suppress("DEPRECATION")
+            setTaskDescription(taskDesc)
         }
     }
 

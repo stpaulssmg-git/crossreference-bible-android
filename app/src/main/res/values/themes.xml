@@ -1,12 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.MyCrossReferenceBible" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+    <!-- Custom Theme for Apostolic Reference Bible (Crimson Primary) -->
+    <style name="Theme.MyCrossReferenceBible" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary Brand Color: Crimson (#8B0000) -->
+        <item name="colorPrimary">#8B0000</item>
+        <item name="colorPrimaryVariant">#3E1014</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+
+        <!-- Secondary / Accent Color: Crimson (#8B0000) -->
+        <item name="colorSecondary">#8B0000</item>
+        <item name="colorSecondaryVariant">#3E1014</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+
+        <!-- Task Description / Recents Header Background -->
+        <item name="android:windowBackground">#F8ECE8</item>
+        <item name="android:statusBarColor">#F8ECE8</item>
+    </style>
 
     <style name="FullScreenDialogTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#8B0000</item>
+        <item name="colorPrimaryVariant">#3E1014</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowIsFloating">false</item>
-        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:windowBackground">#F8ECE8</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
+
 </resources>
