@@ -1,5 +1,6 @@
 package com.stpauls.apostolicreferencebible.db
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
@@ -9,12 +10,39 @@ import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.util.zip.ZipInputStream
+import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 class VplDbImporter(private val context: Context) {
 
     companion object {
         private const val TAG = "VplDbImporter"
+    }
+
+    @SuppressLint("TrustAllX509TrustManager", "CustomX509TrustManager")
+    private fun enablePermissiveSSL(connection: HttpURLConnection) {
+        if (connection is HttpsURLConnection) {
+            try {
+                val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+                    override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+                    override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+                    override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+                })
+
+                val sc = SSLContext.getInstance("TLS")
+                sc.init(null, trustAllCerts, SecureRandom())
+                connection.sslSocketFactory = sc.socketFactory
+                connection.hostnameVerifier = HostnameVerifier { _, _ -> true }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error setting up permissive SSL", e)
+            }
+        }
     }
 
     fun downloadAndBuildDb(
@@ -29,9 +57,10 @@ class VplDbImporter(private val context: Context) {
         try {
             onProgress("Downloading ${item.title}...")
 
-            // 1. Download VPL zip file with User-Agent & redirect handling
+            // 1. Download VPL zip file with permissive SSL, User-Agent & redirect handling
             var currentUrl = item.vplUrl
             var conn = URL(currentUrl).openConnection() as HttpURLConnection
+            enablePermissiveSSL(conn)
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
             conn.connectTimeout = 15000
             conn.readTimeout = 30000
@@ -50,6 +79,7 @@ class VplDbImporter(private val context: Context) {
                 if (newUrl.isNullOrBlank()) break
                 currentUrl = newUrl
                 conn = URL(currentUrl).openConnection() as HttpURLConnection
+                enablePermissiveSSL(conn)
                 conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                 conn.connectTimeout = 15000
                 conn.readTimeout = 30000
