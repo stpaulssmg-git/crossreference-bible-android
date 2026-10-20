@@ -1998,6 +1998,7 @@ class MainActivity : AppCompatActivity() {
                             loadCurrentChapter()
                             cachedSearchDialog = null
                             dialog.dismiss()
+                            showAboutModal()
                             Toast.makeText(this@MainActivity, "${item.title} successfully installed!", Toast.LENGTH_LONG).show()
                         }
                     },

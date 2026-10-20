@@ -1,11 +1,13 @@
 package com.stpauls.apostolicreferencebible.ui
 
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.stpauls.apostolicreferencebible.MainActivity
 import com.stpauls.apostolicreferencebible.R
@@ -45,6 +47,7 @@ class EbibleCatalogAdapter(
     }
 
     class CatalogViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val cardView: CardView = itemView.findViewById(R.id.cardEbibleItem)
         val tvTitle: TextView = itemView.findViewById(R.id.tvEbibleTitle)
         val tvDetails: TextView = itemView.findViewById(R.id.tvEbibleDetails)
         val btnDownload: Button = itemView.findViewById(R.id.btnDownloadEbible)
@@ -58,11 +61,15 @@ class EbibleCatalogAdapter(
     override fun onBindViewHolder(holder: CatalogViewHolder, position: Int) {
         val item = filteredItems[position]
 
+        holder.cardView.setCardBackgroundColor(Color.parseColor(themeColors.expandedGridBg))
+
         holder.tvTitle.text = item.title
-        holder.tvTitle.setTextColor(Color.parseColor("#1C1B1F"))
+        holder.tvTitle.setTextColor(Color.parseColor(themeColors.titleColor))
 
         holder.tvDetails.text = "${item.language} • ${item.country}"
-        holder.tvDetails.setTextColor(Color.parseColor("#555555"))
+        holder.tvDetails.setTextColor(Color.parseColor(themeColors.subtitleColor))
+
+        holder.btnDownload.backgroundTintList = ColorStateList.valueOf(Color.parseColor(themeColors.refTitleColor))
 
         val isDownloaded = downloadedIds.contains(item.id.lowercase())
         if (isDownloaded) {
