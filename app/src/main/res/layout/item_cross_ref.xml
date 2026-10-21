@@ -22,10 +22,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
+        android:lineSpacingExtra="2dp"
         android:text="The LORD possessed me in the beginning of his way..."
         android:textColor="#424242"
-        android:textSize="12sp"
-        android:lineSpacingExtra="2dp" />
+        android:textSize="12sp" />
 
     <View
         android:id="@+id/itemDivider"

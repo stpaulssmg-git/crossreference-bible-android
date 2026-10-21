@@ -1636,20 +1636,10 @@ class MainActivity : AppCompatActivity() {
         isRtl: Boolean,
         onVerseClick: (verseNum: Int) -> Unit
     ): SpannableStringBuilder {
-        val htmlSource = if (isRtl) {
-            "<div dir=\"rtl\" style=\"text-align: right;\">\u2067$localizedRef\u2069</div>"
-        } else {
-            localizedRef
-        }
+        // Wrap with Right-to-Left Isolate for RTL to keep book name and numbers in proper order
+        val formattedText = if (isRtl) "\u2067$localizedRef\u2069" else localizedRef
 
-        val htmlSpanned = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Html.fromHtml(htmlSource, Html.FROM_HTML_MODE_LEGACY)
-        } else {
-            @Suppress("DEPRECATION")
-            Html.fromHtml(htmlSource)
-        }
-
-        val ssb = SpannableStringBuilder(htmlSpanned)
+        val ssb = SpannableStringBuilder(formattedText)
         val plainText = ssb.toString()
         val colonIdx = plainText.indexOf(':')
         val firstVerseNum = rawRef.substringAfter(':', "").split(",", "-").firstOrNull()?.filter { it.isDigit() }?.toIntOrNull() ?: 1
@@ -1696,15 +1686,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             ssb.setSpan(wholeSpan, 0, plainText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        }
-
-        if (isRtl) {
-            ssb.setSpan(
-                AlignmentSpan.Standard(Layout.Alignment.ALIGN_OPPOSITE),
-                0,
-                ssb.length,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
         }
 
         return ssb
@@ -1838,15 +1819,6 @@ class MainActivity : AppCompatActivity() {
                     itemDivider?.setBackgroundColor(Color.parseColor(colors.dividerColor))
 
                     val isRefRtl = isRtlText(localizedRef) || isRtlText(rawRef)
-                    if (isRefRtl) {
-                        tvReference.gravity = Gravity.END or Gravity.RIGHT
-                        tvReference.textAlignment = View.TEXT_ALIGNMENT_VIEW_END
-                        tvReference.textDirection = View.TEXT_DIRECTION_RTL
-                    } else {
-                        tvReference.gravity = Gravity.START or Gravity.LEFT
-                        tvReference.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
-                        tvReference.textDirection = View.TEXT_DIRECTION_LTR
-                    }
 
                     // Build interactive title where clicking individual verse numbers jumps to that specific verse
                     tvReference.text = buildInteractiveReferenceSpannable(
@@ -1877,6 +1849,16 @@ class MainActivity : AppCompatActivity() {
                             loadCurrentChapter(targetVerseNum = targetVerseNum)
                             bottomSheetDialog.dismiss()
                         }
+                    }
+
+                    if (isRefRtl) {
+                        tvReference.gravity = Gravity.END or Gravity.RIGHT
+                        tvReference.textAlignment = View.TEXT_ALIGNMENT_VIEW_END
+                        tvReference.textDirection = View.TEXT_DIRECTION_RTL
+                    } else {
+                        tvReference.gravity = Gravity.START or Gravity.LEFT
+                        tvReference.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
+                        tvReference.textDirection = View.TEXT_DIRECTION_LTR
                     }
 
                     if (!preview.isNullOrBlank()) {
