@@ -845,7 +845,10 @@ class MainActivity : AppCompatActivity() {
                         .setPositiveButton("Delete") { _, _ ->
                             deleteDatabase(trans.dbName)
                             deletedTranslations.add(trans.code)
+                            downloadedTranslationsMap.remove(trans.code.uppercase())
                             enabledTranslations.remove(trans.code)
+
+                            saveDownloadedTranslations()
 
                             getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                                 .edit()
@@ -1083,6 +1086,8 @@ class MainActivity : AppCompatActivity() {
         dialogView.findViewById<View>(R.id.vSearchDivider)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
 
         val etSearchQuery = dialogView.findViewById<EditText>(R.id.etSearchQuery)
+        etSearchQuery?.setTextColor(Color.parseColor(colors.titleColor))
+        etSearchQuery?.setHintTextColor(Color.parseColor(colors.subtitleColor))
         val btnClearQuery = dialogView.findViewById<ImageButton>(R.id.btnClearQuery)
         val containerDirectJumps = dialogView.findViewById<LinearLayout>(R.id.containerDirectJumps)
 
