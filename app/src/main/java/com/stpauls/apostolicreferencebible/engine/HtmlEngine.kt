@@ -48,6 +48,13 @@ class HtmlEngine(private val context: Context) {
 
         val enableAnchorHighlighting = primaryTranslationCode.equals("KJV", ignoreCase = true)
 
+        if (verses.isEmpty()) {
+            sb.append("<div style=\"text-align: center; padding: 48px 20px;\">")
+                .append("<p class=\"missing-text\" style=\"font-size: 1.1em; font-style: italic;\">")
+                .append("Text is not available in ").append(escapeHtml(primaryTranslationCode))
+                .append("</p></div>\n")
+        }
+
         for (verse in verses) {
             val verseXrefs = crossRefsByVerse[verse.verse] ?: emptyList()
             val (processedText, _) = if (enableAnchorHighlighting) {

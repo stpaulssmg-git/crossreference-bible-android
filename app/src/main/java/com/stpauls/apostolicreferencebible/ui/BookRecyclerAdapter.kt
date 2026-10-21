@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.stpauls.apostolicreferencebible.MainActivity
 import com.stpauls.apostolicreferencebible.R
 import com.stpauls.apostolicreferencebible.db.BIBLE_BOOKS
+import com.stpauls.apostolicreferencebible.db.BibleDatabaseHelper
 import com.stpauls.apostolicreferencebible.db.getLocalizedBookName
 
 class BookRecyclerAdapter(
@@ -19,6 +20,7 @@ class BookRecyclerAdapter(
     initialExpandedPosition: Int = 0,
     private val themeColors: MainActivity.ModalThemeColors,
     private val primaryTranslationCode: String = "KJV",
+    private val dbHelper: BibleDatabaseHelper? = null,
     private val onChapterSelected: (bookIndex: Int, chapterNum: Int) -> Unit
 ) : RecyclerView.Adapter<BookRecyclerAdapter.BookViewHolder>() {
 
@@ -41,7 +43,7 @@ class BookRecyclerAdapter(
 
     override fun onBindViewHolder(holder: BookViewHolder, position: Int) {
         val book = BIBLE_BOOKS[position]
-        holder.tvBookName.text = getLocalizedBookName(book.code, primaryTranslationCode)
+        holder.tvBookName.text = getLocalizedBookName(book.code, primaryTranslationCode, dbHelper)
         holder.tvBookName.setTextColor(Color.parseColor(themeColors.titleColor))
 
         holder.tvChapterCount.text = "${book.totalChapters} Chapters"

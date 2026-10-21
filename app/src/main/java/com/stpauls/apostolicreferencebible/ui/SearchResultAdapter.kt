@@ -10,12 +10,14 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.stpauls.apostolicreferencebible.MainActivity
 import com.stpauls.apostolicreferencebible.R
+import com.stpauls.apostolicreferencebible.db.BibleDatabaseHelper
 import com.stpauls.apostolicreferencebible.db.SearchResult
 import com.stpauls.apostolicreferencebible.db.getLocalizedBookName
 
 class SearchResultAdapter(
     private val themeColors: MainActivity.ModalThemeColors,
     private val primaryTranslationCode: String = "KJV",
+    private val dbHelper: BibleDatabaseHelper? = null,
     private val onResultSelected: (result: SearchResult) -> Unit
 ) : RecyclerView.Adapter<SearchResultAdapter.SearchViewHolder>() {
 
@@ -43,7 +45,7 @@ class SearchResultAdapter(
     override fun onBindViewHolder(holder: SearchViewHolder, position: Int) {
         val item = items[position]
 
-        val localizedBook = getLocalizedBookName(item.bookCode, primaryTranslationCode)
+        val localizedBook = getLocalizedBookName(item.bookCode, primaryTranslationCode, dbHelper)
         holder.tvSearchReference.text = "$localizedBook ${item.chapter}:${item.verse}"
         holder.tvSearchReference.setTextColor(Color.parseColor(themeColors.refTitleColor))
 

@@ -61,7 +61,10 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.stpauls.apostolicreferencebible.ui.WordSuggestionAdapter
 import com.stpauls.apostolicreferencebible.db.BIBLE_BOOKS
 import com.stpauls.apostolicreferencebible.db.BibleDatabaseHelper
-import com.stpauls.apostolicreferencebible.db.EBIBLE_CATALOG
+import com.stpauls.apostolicreferencebible.db.searchEbibleCatalog
+import com.stpauls.apostolicreferencebible.db.loadOfflineCatalog
+import com.stpauls.apostolicreferencebible.db.updateCachedCatalog
+import com.stpauls.apostolicreferencebible.db.parseTranslationsCsv
 import com.stpauls.apostolicreferencebible.db.INSTALLED_TRANSLATIONS
 import com.stpauls.apostolicreferencebible.db.TRANSLATION_MAP
 import com.stpauls.apostolicreferencebible.db.TranslationInfo
@@ -103,13 +106,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun getAvailableTranslations(): List<TranslationInfo> {
         val list = mutableListOf<TranslationInfo>()
-        list.addAll(INSTALLED_TRANSLATIONS)
+        list.addAll(INSTALLED_TRANSLATIONS.filter { !deletedTranslations.contains(it.code) })
         list.addAll(downloadedTranslationsMap.values)
-        return list.filter { !deletedTranslations.contains(it.code) }
+        return list
     }
 
     private lateinit var webView: WebView
     private lateinit var tvHeaderTitle: TextView
+    private lateinit var tvHeaderSubtitle: TextView
     private lateinit var btnHeaderTitleContainer: LinearLayout
     private lateinit var tvActiveTranslationBadge: TextView
     private lateinit var btnThemePicker: TextView
@@ -294,11 +298,29 @@ class MainActivity : AppCompatActivity() {
 
         // Load saved preferences with KJV as primary, dark theme, and secondary translations enabled on first install
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+
+        // Initialize default preferences on fresh install
+        if (!prefs.contains(KEY_PRIMARY_TRANS)) {
+            prefs.edit()
+                .putString(KEY_PRIMARY_TRANS, "KJV")
+                .putStringSet(KEY_ENABLED_TRANS, setOf("H/G", "ABG", "LXX", "T4T"))
+                .putString(KEY_COMPARE_ORDER, "H/G,ABG,LXX,T4T")
+                .putBoolean(KEY_ALWAYS_SHOW_COMPARE, true)
+                .apply()
+        }
+
         currentTheme = prefs.getString(KEY_THEME, "dark") ?: "dark"
         currentFontSize = prefs.getFloat(KEY_FONT_SIZE, 14f)
         currentFontFamily = prefs.getString(KEY_FONT_FAMILY, "sans") ?: "sans"
         currentPrimaryTranslation = prefs.getString(KEY_PRIMARY_TRANS, "KJV") ?: "KJV"
-        enabledTranslations = prefs.getStringSet(KEY_ENABLED_TRANS, setOf("KJV", "H/G", "ABG", "LXX", "T4T"))?.toMutableSet() ?: mutableSetOf("KJV", "H/G", "ABG", "LXX", "T4T")
+        
+        val savedSecondarySet = prefs.getStringSet(KEY_ENABLED_TRANS, null)
+        enabledTranslations = if (!savedSecondarySet.isNullOrEmpty()) {
+            HashSet(savedSecondarySet)
+        } else {
+            hashSetOf("H/G", "ABG", "LXX", "T4T")
+        }
+
         deletedTranslations = prefs.getStringSet(KEY_DELETED_TRANS, emptySet())?.toMutableSet() ?: mutableSetOf()
         alwaysShowCompare = prefs.getBoolean(KEY_ALWAYS_SHOW_COMPARE, true)
         currentBookIndex = prefs.getInt(KEY_LAST_BOOK_INDEX, 0).coerceIn(0, BIBLE_BOOKS.size - 1)
@@ -308,14 +330,24 @@ class MainActivity : AppCompatActivity() {
         if (downloadedJson.isNotEmpty()) {
             try {
                 val array = JSONArray(downloadedJson)
+                val validArray = JSONArray()
                 for (i in 0 until array.length()) {
                     val obj = array.getJSONObject(i)
                     val code = obj.getString("code")
                     val name = obj.getString("name")
                     val dbName = obj.getString("dbName")
-                    val info = TranslationInfo(code, name, dbName, isPrimary = false, isEnabled = true)
-                    downloadedTranslationsMap[code.uppercase()] = info
+                    val dbFile = getDatabasePath(dbName)
+
+                    if (dbFile.exists() && dbFile.length() > 1024) {
+                        val info = TranslationInfo(code, name, dbName, isPrimary = false, isEnabled = true)
+                        downloadedTranslationsMap[code.uppercase()] = info
+                        validArray.put(obj)
+                    } else {
+                        Log.w(TAG, "Cleaning up invalid or missing downloaded translation: $code ($dbName)")
+                        if (dbFile.exists()) dbFile.delete()
+                    }
                 }
+                prefs.edit().putString(KEY_DOWNLOADED_TRANS, validArray.toString()).apply()
             } catch (e: Exception) {
                 Log.e(TAG, "Error parsing downloaded translations JSON", e)
             }
@@ -329,6 +361,7 @@ class MainActivity : AppCompatActivity() {
         // Initialize Views
         webView = findViewById(R.id.webView)
         tvHeaderTitle = findViewById(R.id.tvHeaderTitle)
+        tvHeaderSubtitle = findViewById(R.id.tvHeaderSubtitle)
         btnHeaderTitleContainer = findViewById(R.id.btnHeaderTitleContainer)
         tvActiveTranslationBadge = findViewById(R.id.tvActiveTranslationBadge)
         btnThemePicker = findViewById(R.id.btnThemePicker)
@@ -442,12 +475,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         bottomSheetDialog.setContentView(dialogView)
+        bottomSheetDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        bottomSheetDialog.behavior.peekHeight = resources.displayMetrics.heightPixels
+        bottomSheetDialog.behavior.skipCollapsed = true
         bottomSheetDialog.show()
     }
 
     private fun showOnTheFlyChapterHUD() {
         val bookInfo = BIBLE_BOOKS[currentBookIndex]
-        val localizedBookName = getLocalizedBookName(bookInfo.code, currentPrimaryTranslation)
+        val localizedBookName = getLocalizedBookName(bookInfo.code, currentPrimaryTranslation, dbHelper)
         tvChapterSwipeHUDText.text = "$localizedBookName $currentChapter"
 
         hudRunnable?.let { hudHandler.removeCallbacks(it) }
@@ -481,6 +517,13 @@ class MainActivity : AppCompatActivity() {
 
         headerBar.setBackgroundColor(Color.parseColor(headerBg))
         tvHeaderTitle.setTextColor(Color.parseColor(headerText))
+        val headerSubtitleColor = when (themeName) {
+            "crimson" -> "#8C5A5D"
+            "teal" -> "#547A7C"
+            "dark" -> "#AAAAAA"
+            else -> "#757575"
+        }
+        tvHeaderSubtitle.setTextColor(Color.parseColor(headerSubtitleColor))
         btnOpenSearch.setColorFilter(Color.parseColor(headerText))
 
         tvActiveTranslationBadge.setTextColor(Color.parseColor(headerText))
@@ -569,10 +612,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadCurrentChapter(targetVerseNum: Int? = null) {
+        var activeTranslation = currentPrimaryTranslation
+
+        // Verify total verse count for activeTranslation
+        val totalVerseCount = dbHelper.getTotalVerseCount(activeTranslation)
+        if (totalVerseCount < 100 && !activeTranslation.equals("KJV", ignoreCase = true)) {
+            Log.w(TAG, "Translation $activeTranslation has invalid verse count ($totalVerseCount). Falling back to KJV.")
+            val failedTransName = activeTranslation
+            activeTranslation = "KJV"
+            currentPrimaryTranslation = "KJV"
+            saveTranslationPreferences()
+            runOnUiThread {
+                Toast.makeText(this@MainActivity, "$failedTransName is incomplete or unavailable. Switched to KJV.", Toast.LENGTH_LONG).show()
+            }
+        }
+
         val bookInfo = BIBLE_BOOKS[currentBookIndex]
-        val localizedBookName = getLocalizedBookName(bookInfo.code, currentPrimaryTranslation)
+        val localizedBookName = getLocalizedBookName(bookInfo.code, activeTranslation, dbHelper)
         tvHeaderTitle.text = "$localizedBookName $currentChapter"
-        tvActiveTranslationBadge.text = currentPrimaryTranslation
+
+        val transName = TRANSLATION_MAP[activeTranslation.uppercase()]
+            ?: downloadedTranslationsMap[activeTranslation.uppercase()]?.name
+            ?: activeTranslation
+        tvHeaderSubtitle.text = transName
+        tvActiveTranslationBadge.text = "⋮"
 
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         currentFontSize = prefs.getFloat(KEY_FONT_SIZE, currentFontSize)
@@ -601,13 +664,13 @@ class MainActivity : AppCompatActivity() {
         executor.execute {
             try {
                 // Query primary verses and cross references for requested chapter
-                val verses = dbHelper.getVerses(currentPrimaryTranslation, bookInfo.code, currentChapter)
+                val verses = dbHelper.getVerses(activeTranslation, bookInfo.code, currentChapter)
                 val crossRefs = dbHelper.getCrossReferences(bookInfo.code, currentChapter)
 
                 // Query enabled secondary comparison verses for requested chapter
                 val activeSecondary = enabledTranslations.filter { !it.equals(currentPrimaryTranslation, ignoreCase = true) }.toSet()
                 val primaryVerseNumbers = verses.map { it.verse }
-                val compareOrderCsv = prefs.getString(KEY_COMPARE_ORDER, "") ?: ""
+                val compareOrderCsv = prefs.getString(KEY_COMPARE_ORDER, "H/G,ABG,LXX,T4T") ?: "H/G,ABG,LXX,T4T"
                 val compareOrderList = compareOrderCsv.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 
                 val secondaryVersesMap = if (activeSecondary.isNotEmpty()) {
@@ -900,6 +963,9 @@ class MainActivity : AppCompatActivity() {
         syncTranslationCheckUI(radioButtonsMap, checkBoxesMap)
 
         bottomSheetDialog.setContentView(dialogView)
+        bottomSheetDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        bottomSheetDialog.behavior.peekHeight = resources.displayMetrics.heightPixels
+        bottomSheetDialog.behavior.skipCollapsed = true
         bottomSheetDialog.show()
     }
 
@@ -952,7 +1018,7 @@ class MainActivity : AppCompatActivity() {
         vCompareDivider?.setBackgroundColor(Color.parseColor(colors.dividerColor))
         tvNoSecondaryMsg?.setTextColor(Color.parseColor(colors.previewTextColor))
 
-        val localizedBookName = getLocalizedBookName(bookCode, currentPrimaryTranslation)
+        val localizedBookName = getLocalizedBookName(bookCode, currentPrimaryTranslation, dbHelper)
         tvCompareSubtitle?.text = "$localizedBookName $chapter:$verseNum"
 
         btnManageTranslationsPrompt.setOnClickListener {
@@ -1135,7 +1201,7 @@ class MainActivity : AppCompatActivity() {
 
         rvSearchResults.layoutManager = LinearLayoutManager(this)
 
-        val adapter = SearchResultAdapter(colors, primaryTranslationCode = currentPrimaryTranslation) { result ->
+        val adapter = SearchResultAdapter(colors, primaryTranslationCode = currentPrimaryTranslation, dbHelper = dbHelper) { result ->
             val bookIdx = BIBLE_BOOKS.indexOfFirst { it.code == result.bookCode }
             if (bookIdx >= 0) {
                 navHistory.add(NavState(currentBookIndex, currentChapter, 1, isSearchJump = true))
@@ -1182,7 +1248,7 @@ class MainActivity : AppCompatActivity() {
                         tvStatsNt.text = "NT - ${advResult.ntCount}"
 
                         if (activeFilterBookCode != null) {
-                            val locName = getLocalizedBookName(activeFilterBookCode!!, currentPrimaryTranslation)
+                            val locName = getLocalizedBookName(activeFilterBookCode!!, currentPrimaryTranslation, dbHelper)
                             tvResultCount.text = "Showing ${advResult.pageResults.size} verses for $locName (Total ${advResult.totalCount})"
                         } else if (searchTerm.isNotEmpty()) {
                             tvResultCount.text = "Showing ${advResult.pageResults.size} verses for \"$searchTerm\" (Total ${advResult.totalCount})"
@@ -1205,7 +1271,13 @@ class MainActivity : AppCompatActivity() {
                         layoutSearchStatsBar.visibility = View.GONE
                         layoutPaginationBar.visibility = View.GONE
                         if (directJumps.isEmpty()) {
-                            tvResultCount.text = "No verses found for \"$queryText\""
+                            tvResultCount.text = "No verses found for \"$queryText\". Tap to search ebible.org catalog ➔"
+                            tvResultCount.setOnClickListener {
+                                searchDialog.dismiss()
+                                showEbibleCatalogModal(queryText)
+                            }
+                        } else {
+                            tvResultCount.setOnClickListener(null)
                         }
                     }
 
@@ -1291,7 +1363,7 @@ class MainActivity : AppCompatActivity() {
                 if (cnt > 0) {
                     countInScope++
                     val chipBtn = TextView(this@MainActivity).apply {
-                        val locName = getLocalizedBookName(book.code, currentPrimaryTranslation)
+                        val locName = getLocalizedBookName(book.code, currentPrimaryTranslation, dbHelper)
                         text = "$locName ($cnt)"
                         setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
                         setTextColor(Color.parseColor(colors.chipTextColor))
@@ -1509,7 +1581,8 @@ class MainActivity : AppCompatActivity() {
             context = this,
             initialExpandedPosition = -1,
             themeColors = colors,
-            primaryTranslationCode = currentPrimaryTranslation
+            primaryTranslationCode = currentPrimaryTranslation,
+            dbHelper = dbHelper
         ) { selectedBookIdx, selectedChapterNum ->
             currentBookIndex = selectedBookIdx
             currentChapter = selectedChapterNum
@@ -1634,7 +1707,7 @@ class MainActivity : AppCompatActivity() {
                         val refList = crossRefs.flatMap { it.references.split("|") }.map { it.trim() }.filter { it.isNotEmpty() }
                         val referencesStr = refList.joinToString("|")
                         runOnUiThread {
-                            val localizedBook = getLocalizedBookName(bookCode, currentPrimaryTranslation)
+                            val localizedBook = getLocalizedBookName(bookCode, currentPrimaryTranslation, dbHelper)
                             showBottomSheet("Verse $verseNum", "$localizedBook $chapter:$verseNum", referencesStr)
                         }
                     }
@@ -1956,7 +2029,7 @@ class MainActivity : AppCompatActivity() {
             .apply()
     }
 
-    private fun showEbibleCatalogModal() {
+    private fun showEbibleCatalogModal(initialQuery: String? = null) {
         val dialog = Dialog(this, R.style.FullScreenDialogTheme)
         val dialogView = LayoutInflater.from(this).inflate(
             R.layout.dialog_ebible_catalog,
@@ -2001,57 +2074,202 @@ class MainActivity : AppCompatActivity() {
         val downloadedIds = mutableSetOf<String>()
         downloadedIds.addAll(downloadedTranslationsMap.keys.map { it.lowercase() })
         downloadedIds.addAll(downloadedTranslationsMap.values.map { it.code.lowercase() })
+        downloadedIds.addAll(INSTALLED_TRANSLATIONS.map { it.code.lowercase() })
 
         lateinit var adapter: EbibleCatalogAdapter
-        adapter = EbibleCatalogAdapter(colors, downloadedIds) { item ->
-            Toast.makeText(this@MainActivity, "Downloading ${item.title}...", Toast.LENGTH_SHORT).show()
-            executor.execute {
-                val importer = VplDbImporter(this@MainActivity)
-                importer.downloadAndBuildDb(
-                    item = item,
-                    onProgress = { statusText ->
-                        runOnUiThread {
-                            Toast.makeText(this@MainActivity, statusText, Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    onSuccess = { dbName ->
-                        runOnUiThread {
-                            val newTransInfo = TranslationInfo(
-                                code = item.code.uppercase(),
-                                name = "${item.language} (${item.title})",
-                                dbName = dbName,
-                                isPrimary = false,
-                                isEnabled = true
-                            )
-                            downloadedTranslationsMap[item.code.uppercase()] = newTransInfo
-                            enabledTranslations.add(item.code.uppercase())
-                            saveDownloadedTranslations()
-                            saveTranslationPreferences()
+        adapter = EbibleCatalogAdapter(
+            themeColors = colors,
+            downloadedIds = downloadedIds,
+            onDownloadClick = { item ->
+                // Requirement 1: Limit maximum downloaded translations to 20
+                if (downloadedTranslationsMap.size >= 20) {
+                    adapter.markDownloadFailed(item.id)
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Maximum limit of 20 downloaded translations reached. Please delete an existing translation before downloading a new one.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@EbibleCatalogAdapter
+                }
 
-                            loadCurrentChapter()
-                            cachedSearchDialog = null
-                            dialog.dismiss()
-                            Toast.makeText(this@MainActivity, "${item.title} successfully installed!", Toast.LENGTH_LONG).show()
+                // Requirement 2: Prevent downloading the same version if already downloaded
+                if (downloadedIds.contains(item.id.lowercase()) || downloadedIds.contains(item.code.lowercase())) {
+                    adapter.markDownloadFailed(item.id)
+                    Toast.makeText(
+                        this@MainActivity,
+                        "${item.title} is already downloaded and in your versions list.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@EbibleCatalogAdapter
+                }
+
+                Toast.makeText(this@MainActivity, "Downloading ${item.title}...", Toast.LENGTH_SHORT).show()
+                executor.execute {
+                    val importer = VplDbImporter(this@MainActivity)
+                    importer.downloadAndBuildDb(
+                        item = item,
+                        onProgress = { statusText ->
+                            runOnUiThread {
+                                Toast.makeText(this@MainActivity, statusText, Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        onSuccess = { dbName ->
+                            runOnUiThread {
+                                val newVariantId = item.id.uppercase()
+                                val newTransInfo = TranslationInfo(
+                                    code = newVariantId,
+                                    name = "${item.language} (${item.title})",
+                                    dbName = dbName,
+                                    isPrimary = false,
+                                    isEnabled = true
+                                )
+                                downloadedTranslationsMap[newVariantId] = newTransInfo
+                                enabledTranslations.add(newVariantId)
+                                deletedTranslations.remove(newVariantId)
+                                deletedTranslations.remove(item.code.uppercase())
+                                saveDownloadedTranslations()
+
+                                getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                                    .edit()
+                                    .putStringSet(KEY_DELETED_TRANS, deletedTranslations)
+                                    .putStringSet(KEY_ENABLED_TRANS, enabledTranslations)
+                                    .apply()
+
+                                currentPrimaryTranslation = newVariantId
+                                saveTranslationPreferences()
+
+                                // If current book doesn't exist in newly downloaded translation (e.g. Genesis when downloading NT-only Finnish), start at Matthew 1
+                                if (!dbHelper.hasBook(newVariantId, BIBLE_BOOKS[currentBookIndex].code)) {
+                                    val firstBookIdx = dbHelper.getFirstAvailableBookIndex(newVariantId)
+                                    if (firstBookIdx >= 0) {
+                                        currentBookIndex = firstBookIdx
+                                        currentChapter = 1
+                                    }
+                                }
+
+                                loadCurrentChapter()
+                                cachedSearchDialog = null
+                                dialog.dismiss()
+                                Toast.makeText(this@MainActivity, "${item.title} installed & loaded!", Toast.LENGTH_LONG).show()
+                            }
+                        },
+                        onError = { errorMsg ->
+                            runOnUiThread {
+                                adapter.markDownloadFailed(item.id)
+                                downloadedIds.remove(item.id.lowercase())
+                                downloadedIds.remove(item.code.lowercase())
+                                downloadedTranslationsMap.remove(item.id.uppercase())
+                                downloadedTranslationsMap.remove(item.code.uppercase())
+                                saveDownloadedTranslations()
+                                Toast.makeText(this@MainActivity, errorMsg, Toast.LENGTH_LONG).show()
+                            }
                         }
-                    },
-                    onError = { errorMsg ->
-                        runOnUiThread {
-                            adapter.markDownloadFailed(item.id)
-                            Toast.makeText(this@MainActivity, errorMsg, Toast.LENGTH_LONG).show()
+                    )
+                }
+            },
+            onDeleteClick = { item ->
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle("Delete ${item.title}?")
+                    .setMessage("Are you sure you want to delete ${item.title} from storage?")
+                    .setPositiveButton("Delete") { _, _ ->
+                        val variantId = item.id.uppercase()
+                        val info = downloadedTranslationsMap[variantId] ?: downloadedTranslationsMap[item.code.uppercase()]
+                        val dbName = info?.dbName ?: "ebible_${item.id.lowercase().replace("-", "_")}.db"
+
+                        try {
+                            deleteDatabase(dbName)
+                        } catch (e: Exception) {
+                            Log.e("MainActivity", "Error deleting $dbName", e)
                         }
+
+                        downloadedTranslationsMap.remove(variantId)
+                        downloadedTranslationsMap.remove(item.code.uppercase())
+                        enabledTranslations.remove(variantId)
+                        enabledTranslations.remove(item.code.uppercase())
+                        deletedTranslations.add(variantId)
+
+                        saveDownloadedTranslations()
+                        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                            .edit()
+                            .putStringSet(KEY_DELETED_TRANS, deletedTranslations)
+                            .putStringSet(KEY_ENABLED_TRANS, enabledTranslations)
+                            .apply()
+
+                        if (currentPrimaryTranslation.equals(variantId, ignoreCase = true) ||
+                            currentPrimaryTranslation.equals(item.code, ignoreCase = true)) {
+                            currentPrimaryTranslation = "KJV"
+                            saveTranslationPreferences()
+                        }
+
+                        downloadedIds.remove(item.id.lowercase())
+                        downloadedIds.remove(item.code.lowercase())
+
+                        adapter.notifyDataSetChanged()
+                        loadCurrentChapter()
+                        cachedSearchDialog = null
+                        Toast.makeText(this@MainActivity, "${item.title} deleted", Toast.LENGTH_SHORT).show()
                     }
-                )
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+        )
+
+        val tvEmpty = dialogView.findViewById<TextView>(R.id.tvCatalogEmptyState)
+        tvEmpty?.setTextColor(Color.parseColor(colors.subtitleColor))
+
+        var fullCatalog = loadOfflineCatalog(this@MainActivity)
+
+        fun updateCatalogList(query: String) {
+            val matches = searchEbibleCatalog(query, fullCatalog)
+            adapter.setCatalog(matches)
+            if (matches.isEmpty() && query.isNotBlank()) {
+                tvEmpty?.text = "No downloadable VPL Bible found on ebible.org matching \"$query\""
+                tvEmpty?.visibility = View.VISIBLE
+            } else {
+                tvEmpty?.visibility = View.GONE
             }
         }
 
-        adapter.setCatalog(EBIBLE_CATALOG)
+        updateCatalogList(initialQuery.orEmpty())
         rvList?.adapter = adapter
+
+        // Asynchronously refresh translations.csv ONLY when the catalog modal is opened
+        executor.execute {
+            try {
+                val conn = java.net.URL("https://ebible.org/Scriptures/translations.csv").openConnection() as java.net.HttpURLConnection
+                conn.connectTimeout = 10000
+                conn.readTimeout = 15000
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0")
+                if (conn.responseCode == java.net.HttpURLConnection.HTTP_OK) {
+                    val csvText = conn.inputStream.bufferedReader().use { it.readText() }
+                    if (csvText.isNotBlank()) {
+                        val updatedCatalog = updateCachedCatalog(this@MainActivity, csvText)
+                        if (updatedCatalog.isNotEmpty()) {
+                            fullCatalog = updatedCatalog
+                            runOnUiThread {
+                                val currentQuery = etSearch?.text?.toString().orEmpty()
+                                updateCatalogList(currentQuery)
+                            }
+                        }
+                    }
+                }
+                conn.disconnect()
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error fetching live translations.csv", e)
+            }
+        }
+
+        if (!initialQuery.isNullOrBlank()) {
+            etSearch?.setText(initialQuery)
+            etSearch?.setSelection(initialQuery.length)
+        }
 
         etSearch?.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                adapter.filter(s?.toString().orEmpty())
+                val q = s?.toString().orEmpty()
+                updateCatalogList(q)
             }
         })
 

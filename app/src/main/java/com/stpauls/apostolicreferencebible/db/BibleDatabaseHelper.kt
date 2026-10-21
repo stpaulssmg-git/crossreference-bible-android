@@ -6,10 +6,11 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import java.io.FileOutputStream
 
-class BibleDatabaseHelper(private val context: Context) :
+class BibleDatabaseHelper(val context: Context) :
     SQLiteOpenHelper(context, "dummy.db", null, 1) {
 
     private val vocabularyCache = java.util.concurrent.ConcurrentHashMap<String, List<String>>()
+    private val customBookNamesCache = java.util.concurrent.ConcurrentHashMap<String, Map<String, String>>()
 
     companion object {
         private const val TAG = "BibleDatabaseHelper"
@@ -135,7 +136,7 @@ class BibleDatabaseHelper(private val context: Context) :
         val chapterAndVerse = trimmed.substring(spaceIdx + 1).trim()
 
         val normalizedBook = normalizeBookCode(bookRaw)
-        val localizedBookName = getLocalizedBookName(normalizedBook, primaryTranslationCode)
+        val localizedBookName = getLocalizedBookName(normalizedBook, primaryTranslationCode, this)
 
         return "$localizedBookName $chapterAndVerse"
     }
@@ -201,16 +202,9 @@ class BibleDatabaseHelper(private val context: Context) :
         }
 
         // 2. Collect ALL prefix / startsWith matches from localized book maps & English maps
-        val activeMap = when (primaryTranslationCode.uppercase()) {
-            "KAN" -> KAN_BOOK_NAME_MAP
-            "TEL" -> TEL_BOOK_NAME_MAP
-            "MAL" -> MAL_BOOK_NAME_MAP
-            "TAM" -> TAM_BOOK_NAME_MAP
-            "HIN" -> HIN_BOOK_NAME_MAP
-            "SPA" -> SPA_BOOK_NAME_MAP
-            "H/G", "HGB" -> HGB_BOOK_NAME_MAP
-            else -> BOOK_NAME_MAP
-        }
+        val customMap = getCustomBookNames(primaryTranslationCode)
+        val coreMap = loadCoreBookNamesFromJson(context)[primaryTranslationCode.uppercase()] ?: emptyMap()
+        val activeMap = if (customMap.isNotEmpty()) customMap else if (coreMap.isNotEmpty()) coreMap else BOOK_NAME_MAP
 
         // Add matching codes from active localized map
         activeMap.entries.filter { it.value.uppercase().startsWith(bookRaw) }.forEach {
@@ -237,7 +231,7 @@ class BibleDatabaseHelper(private val context: Context) :
                 val bookInfo = BIBLE_BOOKS[bookIdx]
                 // Verify valid chapter number for this specific book
                 if (chapter in 1..bookInfo.totalChapters) {
-                    val localizedName = getLocalizedBookName(bookInfo.code, primaryTranslationCode)
+                    val localizedName = getLocalizedBookName(bookInfo.code, primaryTranslationCode, this)
                     jumpsList.add(
                         DirectReferenceJump(
                             bookIndex = bookIdx,
@@ -453,6 +447,10 @@ class BibleDatabaseHelper(private val context: Context) :
 
         for (transCode in orderedSecondary) {
             val dbFileName = getDbFileName(transCode)
+            val dbFile = context.getDatabasePath(dbFileName)
+            val isInstalledAsset = INSTALLED_TRANSLATIONS.any { it.dbName.equals(dbFileName, ignoreCase = true) }
+            if (!isInstalledAsset && !dbFile.exists()) continue
+
             val transName = TRANSLATION_MAP[transCode.uppercase()] ?: transCode
             val fetchedVersesMap = mutableMapOf<Int, String>()
 
@@ -637,6 +635,119 @@ class BibleDatabaseHelper(private val context: Context) :
         }
 
         return results
+    }
+
+    fun getCustomBookNames(translationCode: String): Map<String, String> {
+        val key = translationCode.lowercase()
+        customBookNamesCache[key]?.let { return it }
+
+        val dbFileName = getDbFileName(translationCode)
+        val map = mutableMapOf<String, String>()
+
+        try {
+            val dbFile = context.getDatabasePath(dbFileName)
+            if (!dbFile.exists()) return emptyMap()
+
+            val db = getReadableDb(dbFileName)
+            try {
+                val cursor = db.rawQuery(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name='book_names'",
+                    null
+                )
+                val hasTable = cursor.use { it.count > 0 }
+                if (hasTable) {
+                    val nameCursor = db.query(
+                        "book_names",
+                        arrayOf("book_code", "localized_name"),
+                        null, null, null, null, null
+                    )
+                    nameCursor.use { c ->
+                        if (c.moveToFirst()) {
+                            val codeIdx = c.getColumnIndexOrThrow("book_code")
+                            val nameIdx = c.getColumnIndexOrThrow("localized_name")
+                            do {
+                                val bCode = c.getString(codeIdx)
+                                val locName = c.getString(nameIdx)
+                                if (!bCode.isNullOrEmpty() && !locName.isNullOrEmpty()) {
+                                    map[bCode] = locName
+                                }
+                            } while (c.moveToNext())
+                        }
+                    }
+                }
+            } finally {
+                try { db.close() } catch (_: Exception) {}
+            }
+        } catch (e: Exception) {
+            Log.e("BibleDbHelper", "Error querying book_names for $translationCode", e)
+        }
+
+        customBookNamesCache[key] = map
+        return map
+    }
+
+    fun getCustomBookName(translationCode: String, bookCode: String): String? {
+        val map = getCustomBookNames(translationCode)
+        return map[bookCode]
+    }
+
+    fun getTotalVerseCount(translationCode: String): Int {
+        val dbFileName = getDbFileName(translationCode)
+        try {
+            val dbFile = context.getDatabasePath(dbFileName)
+            if (!dbFile.exists()) return 0
+
+            val db = getReadableDb(dbFileName)
+            val cursor = db.rawQuery("SELECT COUNT(*) FROM verses", null)
+            val count = cursor.use {
+                if (it.moveToFirst()) it.getInt(0) else 0
+            }
+            try { db.close() } catch (_: Exception) {}
+            return count
+        } catch (e: Exception) {
+            Log.e("BibleDbHelper", "Error getting verse count for $translationCode", e)
+            return 0
+        }
+    }
+
+    fun hasBook(translationCode: String, bookCode: String): Boolean {
+        val dbFileName = getDbFileName(translationCode)
+        try {
+            val dbFile = context.getDatabasePath(dbFileName)
+            if (!dbFile.exists()) return false
+
+            val db = getReadableDb(dbFileName)
+            val cursor = db.rawQuery("SELECT 1 FROM verses WHERE book = ? LIMIT 1", arrayOf(bookCode))
+            val exists = cursor.use { it.moveToFirst() }
+            try { db.close() } catch (_: Exception) {}
+            return exists
+        } catch (e: Exception) {
+            Log.e("BibleDbHelper", "Error checking book $bookCode in $translationCode", e)
+            return false
+        }
+    }
+
+    fun getFirstAvailableBookIndex(translationCode: String): Int {
+        val dbFileName = getDbFileName(translationCode)
+        try {
+            val dbFile = context.getDatabasePath(dbFileName)
+            if (!dbFile.exists()) return 0
+
+            val db = getReadableDb(dbFileName)
+            val cursor = db.rawQuery("SELECT DISTINCT book FROM verses LIMIT 1", null)
+            val firstBookCode = cursor.use {
+                if (it.moveToFirst()) it.getString(0) else null
+            }
+            try { db.close() } catch (_: Exception) {}
+
+            if (!firstBookCode.isNullOrEmpty()) {
+                val idx = BIBLE_BOOKS.indexOfFirst { it.code.equals(firstBookCode, ignoreCase = true) }
+                if (idx >= 0) return idx
+            }
+        } catch (e: Exception) {
+            Log.e("BibleDbHelper", "Error getting first book for $translationCode", e)
+        }
+        return 0
     }
 
     fun getVerseTextByRef(translationCode: String, referenceStr: String): String? {

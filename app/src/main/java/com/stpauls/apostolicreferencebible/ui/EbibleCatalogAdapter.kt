@@ -16,7 +16,8 @@ import com.stpauls.apostolicreferencebible.db.EbibleCatalogItem
 class EbibleCatalogAdapter(
     private val themeColors: MainActivity.ModalThemeColors,
     private val downloadedIds: Set<String>,
-    private val onDownloadClick: (item: EbibleCatalogItem) -> Unit
+    private val onDownloadClick: (item: EbibleCatalogItem) -> Unit,
+    private val onDeleteClick: ((item: EbibleCatalogItem) -> Unit)? = null
 ) : RecyclerView.Adapter<EbibleCatalogAdapter.CatalogViewHolder>() {
 
     private val allItems = mutableListOf<EbibleCatalogItem>()
@@ -63,6 +64,7 @@ class EbibleCatalogAdapter(
         val tvDetails: TextView = itemView.findViewById(R.id.tvEbibleDetails)
         val pbProgress: ProgressBar = itemView.findViewById(R.id.pbDownloadProgress)
         val btnDownloadIcon: ImageButton = itemView.findViewById(R.id.btnDownloadIcon)
+        val btnDeleteEbible: ImageButton = itemView.findViewById(R.id.btnDeleteEbible)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CatalogViewHolder {
@@ -87,13 +89,20 @@ class EbibleCatalogAdapter(
         if (isDownloading) {
             holder.pbProgress.visibility = View.VISIBLE
             holder.btnDownloadIcon.visibility = View.GONE
+            holder.btnDeleteEbible.visibility = View.GONE
         } else if (isDownloaded) {
             holder.pbProgress.visibility = View.GONE
             holder.btnDownloadIcon.visibility = View.VISIBLE
             holder.btnDownloadIcon.setImageResource(android.R.drawable.checkbox_on_background)
             holder.btnDownloadIcon.isEnabled = false
+            holder.btnDownloadIcon.setOnClickListener(null)
             holder.btnDownloadIcon.alpha = 0.4f
             holder.btnDownloadIcon.clearColorFilter()
+
+            holder.btnDeleteEbible.visibility = View.VISIBLE
+            holder.btnDeleteEbible.setOnClickListener {
+                onDeleteClick?.invoke(item)
+            }
         } else {
             holder.pbProgress.visibility = View.GONE
             holder.btnDownloadIcon.visibility = View.VISIBLE
@@ -105,6 +114,9 @@ class EbibleCatalogAdapter(
                 markDownloading(item.id)
                 onDownloadClick(item)
             }
+
+            holder.btnDeleteEbible.visibility = View.GONE
+            holder.btnDeleteEbible.setOnClickListener(null)
         }
     }
 

@@ -94,4 +94,14 @@
         android:paddingEnd="12dp"
         android:paddingBottom="12dp" />
 
+    <TextView
+        android:id="@+id/tvCatalogEmptyState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="24dp"
+        android:gravity="center"
+        android:textColor="#757575"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
 </LinearLayout>

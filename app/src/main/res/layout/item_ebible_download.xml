@@ -68,6 +68,17 @@
             android:src="@android:drawable/stat_sys_download"
             app:tint="#FFFFFF" />
 
+        <ImageButton
+            android:id="@+id/btnDeleteEbible"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/delete_bible_desc"
+            android:src="@android:drawable/ic_menu_delete"
+            android:visibility="gone"
+            app:tint="#EF5350" />
+
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>
