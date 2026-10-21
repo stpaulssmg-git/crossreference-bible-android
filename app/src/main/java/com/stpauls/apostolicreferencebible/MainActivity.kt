@@ -1826,10 +1826,12 @@ class MainActivity : AppCompatActivity() {
 
                     val isRefRtl = isRtlText(localizedRef) || isRtlText(rawRef)
                     if (isRefRtl) {
-                        tvReference.gravity = Gravity.END
+                        tvReference.gravity = Gravity.END or Gravity.RIGHT
+                        tvReference.textAlignment = View.TEXT_ALIGNMENT_VIEW_END
                         tvReference.textDirection = View.TEXT_DIRECTION_RTL
                     } else {
-                        tvReference.gravity = Gravity.START
+                        tvReference.gravity = Gravity.START or Gravity.LEFT
+                        tvReference.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
                         tvReference.textDirection = View.TEXT_DIRECTION_LTR
                     }
 
