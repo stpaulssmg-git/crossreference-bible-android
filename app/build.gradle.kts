@@ -32,7 +32,7 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystoreFile = file("release-keystore.jks")
+            val keystoreFile = file("arb-release-keystore.jks")
             if (keystoreFile.exists()) {
                 storeFile = keystoreFile
                 storePassword = releaseStorePassword
