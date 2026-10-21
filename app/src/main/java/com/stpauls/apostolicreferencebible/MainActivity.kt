@@ -1636,9 +1636,22 @@ class MainActivity : AppCompatActivity() {
         isRtl: Boolean,
         onVerseClick: (verseNum: Int) -> Unit
     ): SpannableStringBuilder {
-        val formattedText = if (isRtl) "\u2067$localizedRef\u2069" else localizedRef
-        val ssb = SpannableStringBuilder(formattedText)
-        val colonIdx = formattedText.indexOf(':')
+        val htmlSource = if (isRtl) {
+            "<div dir=\"rtl\" style=\"text-align: right;\">\u2067$localizedRef\u2069</div>"
+        } else {
+            localizedRef
+        }
+
+        val htmlSpanned = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            Html.fromHtml(htmlSource, Html.FROM_HTML_MODE_LEGACY)
+        } else {
+            @Suppress("DEPRECATION")
+            Html.fromHtml(htmlSource)
+        }
+
+        val ssb = SpannableStringBuilder(htmlSpanned)
+        val plainText = ssb.toString()
+        val colonIdx = plainText.indexOf(':')
         val firstVerseNum = rawRef.substringAfter(':', "").split(",", "-").firstOrNull()?.filter { it.isDigit() }?.toIntOrNull() ?: 1
 
         if (colonIdx > 0) {
@@ -1654,7 +1667,7 @@ class MainActivity : AppCompatActivity() {
             ssb.setSpan(prefixSpan, 0, colonIdx + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 
             val digitRegex = Regex("\\b\\d+\\b")
-            val matches = digitRegex.findAll(formattedText, startIndex = colonIdx + 1)
+            val matches = digitRegex.findAll(plainText, startIndex = colonIdx + 1)
 
             for (match in matches) {
                 val vNum = match.value.toIntOrNull() ?: continue
@@ -1682,7 +1695,7 @@ class MainActivity : AppCompatActivity() {
                     ds.isUnderlineText = false
                 }
             }
-            ssb.setSpan(wholeSpan, 0, formattedText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            ssb.setSpan(wholeSpan, 0, plainText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
 
         if (isRtl) {

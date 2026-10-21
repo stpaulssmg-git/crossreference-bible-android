@@ -6,7 +6,7 @@
     android:paddingTop="6dp"
     android:paddingBottom="6dp">
 
-    <!-- Reference Name (e.g., Prov 8:22-24) -->
+    <!-- Reference Name (e.g., Prov 8:22-24 or איוב 26:7) -->
     <TextView
         android:id="@+id/tvReference"
         android:layout_width="match_parent"
