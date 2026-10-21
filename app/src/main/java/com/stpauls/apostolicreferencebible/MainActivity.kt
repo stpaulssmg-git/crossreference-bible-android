@@ -58,6 +58,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.stpauls.apostolicreferencebible.ui.WordSuggestionAdapter
 import com.stpauls.apostolicreferencebible.db.BIBLE_BOOKS
 import com.stpauls.apostolicreferencebible.db.BibleDatabaseHelper
 import com.stpauls.apostolicreferencebible.db.EBIBLE_CATALOG
@@ -1113,6 +1114,16 @@ class MainActivity : AppCompatActivity() {
 
         val tvResultCount = dialogView.findViewById<TextView>(R.id.tvResultCount)
         val rvSearchResults = dialogView.findViewById<RecyclerView>(R.id.rvSearchResults)
+        val rvWordSuggestions = dialogView.findViewById<RecyclerView>(R.id.rvWordSuggestions)
+        rvWordSuggestions.layoutManager = LinearLayoutManager(this)
+
+        lateinit var suggestionAdapter: WordSuggestionAdapter
+        suggestionAdapter = WordSuggestionAdapter(colors) { selectedWord ->
+            etSearchQuery.setText(selectedWord)
+            etSearchQuery.setSelection(selectedWord.length)
+            rvWordSuggestions.visibility = View.GONE
+        }
+        rvWordSuggestions.adapter = suggestionAdapter
 
         tvResultCount.setTextColor(Color.parseColor(colors.subtitleColor))
         btnPrevPage.setTextColor(Color.parseColor(colors.chipTextColor))
@@ -1138,6 +1149,7 @@ class MainActivity : AppCompatActivity() {
 
         btnClearQuery.setOnClickListener {
             etSearchQuery.setText("")
+            rvWordSuggestions.visibility = View.GONE
         }
 
         var activeFilterBookCode: String? = null
@@ -1347,6 +1359,7 @@ class MainActivity : AppCompatActivity() {
 
         // Onscreen keyboard Enter/Search action listener to execute jump or minimize keyboard
         etSearchQuery.setOnEditorActionListener { _, actionId, _ ->
+            rvWordSuggestions.visibility = View.GONE
             if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_NULL) {
                 // Minimize onscreen keyboard
                 val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
@@ -1379,6 +1392,7 @@ class MainActivity : AppCompatActivity() {
                 if (query.isEmpty()) {
                     btnClearQuery.visibility = View.GONE
                     containerDirectJumps.visibility = View.GONE
+                    rvWordSuggestions.visibility = View.GONE
                     layoutSearchStatsBar.visibility = View.GONE
                     layoutPaginationBar.visibility = View.GONE
                     tvResultCount.text = "Type a reference (mar 1 3) or word (love..)"
@@ -1387,6 +1401,23 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 btnClearQuery.visibility = View.VISIBLE
+
+                if (query.length >= 3) {
+                    executor.execute {
+                        val suggestions = dbHelper.getWordSuggestions(currentPrimaryTranslation, query, limit = 8)
+                        runOnUiThread {
+                            val currentInput = etSearchQuery.text?.toString()?.trim().orEmpty()
+                            if (suggestions.isNotEmpty() && currentInput == query) {
+                                suggestionAdapter.updateSuggestions(suggestions)
+                                rvWordSuggestions.visibility = View.VISIBLE
+                            } else {
+                                rvWordSuggestions.visibility = View.GONE
+                            }
+                        }
+                    }
+                } else {
+                    rvWordSuggestions.visibility = View.GONE
+                }
 
                 // Step 1: Direct Reference Jump Matches (Supports multiple matching books e.g. ma 3 2 -> Matthew 3:2, Mark 3:2, Malachi 3:2)
                 val directJumps = dbHelper.parseDirectReferences(query, currentPrimaryTranslation)
