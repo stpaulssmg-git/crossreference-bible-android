@@ -397,6 +397,8 @@ class MainActivity : AppCompatActivity() {
 
         webView.settings.apply {
             javaScriptEnabled = true
+            allowFileAccess = false
+            allowContentAccess = false
             setSupportZoom(false)
             builtInZoomControls = false
             displayZoomControls = false
@@ -908,6 +910,7 @@ class MainActivity : AppCompatActivity() {
                         .setTitle("Delete ${trans.name}?")
                         .setMessage("Are you sure you want to delete the ${trans.name} database from storage?")
                         .setPositiveButton("Delete") { _, _ ->
+                            dbHelper.closeDatabase(trans.dbName)
                             deleteDatabase(trans.dbName)
                             deletedTranslations.add(trans.code)
                             downloadedTranslationsMap.remove(trans.code.uppercase())
@@ -2177,6 +2180,7 @@ class MainActivity : AppCompatActivity() {
                         val dbName = info?.dbName ?: "ebible_${item.id.lowercase().replace("-", "_")}.db"
 
                         try {
+                            dbHelper.closeDatabase(dbName)
                             deleteDatabase(dbName)
                         } catch (e: Exception) {
                             Log.e("MainActivity", "Error deleting $dbName", e)
@@ -2236,10 +2240,7 @@ class MainActivity : AppCompatActivity() {
         // Asynchronously refresh translations.csv ONLY when the catalog modal is opened
         executor.execute {
             try {
-                val conn = java.net.URL("https://ebible.org/Scriptures/translations.csv").openConnection() as java.net.HttpURLConnection
-                conn.connectTimeout = 10000
-                conn.readTimeout = 15000
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0")
+                val conn = openConnectionSafe("https://ebible.org/Scriptures/translations.csv")
                 if (conn.responseCode == java.net.HttpURLConnection.HTTP_OK) {
                     val csvText = conn.inputStream.bufferedReader().use { it.readText() }
                     if (csvText.isNotBlank()) {
@@ -2281,8 +2282,46 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    private fun openConnectionSafe(urlString: String): java.net.HttpURLConnection {
+        var conn = java.net.URL(urlString).openConnection() as java.net.HttpURLConnection
+        conn.setRequestProperty("User-Agent", "Mozilla/5.0")
+        conn.connectTimeout = 10000
+        conn.readTimeout = 15000
+        conn.instanceFollowRedirects = true
+
+        try {
+            conn.connect()
+        } catch (_: Exception) {
+            conn.disconnect()
+            conn = java.net.URL(urlString).openConnection() as java.net.HttpURLConnection
+            if (conn is javax.net.ssl.HttpsURLConnection) {
+                try {
+                    val trustAllCerts = arrayOf<javax.net.ssl.TrustManager>(object : javax.net.ssl.X509TrustManager {
+                        override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> = arrayOf()
+                        override fun checkClientTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
+                        override fun checkServerTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
+                    })
+                    val sc = javax.net.ssl.SSLContext.getInstance("TLS")
+                    sc.init(null, trustAllCerts, java.security.SecureRandom())
+                    conn.sslSocketFactory = sc.socketFactory
+                    conn.hostnameVerifier = javax.net.ssl.HostnameVerifier { _, _ -> true }
+                } catch (_: Exception) {}
+            }
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0")
+            conn.connectTimeout = 10000
+            conn.readTimeout = 15000
+            conn.instanceFollowRedirects = true
+            conn.connect()
+        }
+
+        return conn
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        try {
+            dbHelper.closeAllDatabases()
+        } catch (_: Exception) {}
         executor.shutdown()
     }
 }

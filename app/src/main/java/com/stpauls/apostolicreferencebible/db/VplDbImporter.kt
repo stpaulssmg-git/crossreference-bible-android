@@ -1,6 +1,5 @@
 package com.stpauls.apostolicreferencebible.db
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
@@ -10,14 +9,7 @@ import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
 import java.util.zip.ZipInputStream
-import javax.net.ssl.HostnameVerifier
-import javax.net.ssl.HttpsURLConnection
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 
 class VplDbImporter(private val context: Context) {
 
@@ -26,24 +18,47 @@ class VplDbImporter(private val context: Context) {
         private val VPL_REGEX = Regex("""^\uFEFF?([a-zA-Z0-9_-]+)[\s\t]+(\d+)[:.](\d+)[\s\t]+(.+)$""")
     }
 
-    @SuppressLint("TrustAllX509TrustManager", "CustomX509TrustManager")
     private fun enablePermissiveSSL(connection: HttpURLConnection) {
-        if (connection is HttpsURLConnection) {
+        if (connection is javax.net.ssl.HttpsURLConnection) {
             try {
-                val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-                    override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-                    override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
-                    override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+                val trustAllCerts = arrayOf<javax.net.ssl.TrustManager>(object : javax.net.ssl.X509TrustManager {
+                    override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> = arrayOf()
+                    override fun checkClientTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
+                    override fun checkServerTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
                 })
 
-                val sc = SSLContext.getInstance("TLS")
-                sc.init(null, trustAllCerts, SecureRandom())
+                val sc = javax.net.ssl.SSLContext.getInstance("TLS")
+                sc.init(null, trustAllCerts, java.security.SecureRandom())
                 connection.sslSocketFactory = sc.socketFactory
-                connection.hostnameVerifier = HostnameVerifier { _, _ -> true }
+                connection.hostnameVerifier = javax.net.ssl.HostnameVerifier { _, _ -> true }
             } catch (e: Exception) {
                 Log.e(TAG, "Error setting up permissive SSL", e)
             }
         }
+    }
+
+    private fun openConnectionSafe(urlString: String): HttpURLConnection {
+        var conn = URL(urlString).openConnection() as HttpURLConnection
+        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+        conn.connectTimeout = 15000
+        conn.readTimeout = 30000
+        conn.instanceFollowRedirects = true
+
+        try {
+            conn.connect()
+        } catch (e: Exception) {
+            // Fallback for legacy Android emulators/devices missing Let's Encrypt ISRG Root X1 cert
+            conn.disconnect()
+            conn = URL(urlString).openConnection() as HttpURLConnection
+            enablePermissiveSSL(conn)
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            conn.connectTimeout = 15000
+            conn.readTimeout = 30000
+            conn.instanceFollowRedirects = true
+            conn.connect()
+        }
+
+        return conn
     }
 
     fun downloadAndBuildDb(
@@ -58,15 +73,9 @@ class VplDbImporter(private val context: Context) {
         try {
             onProgress("Downloading ${item.title}...")
 
-            // 1. Download VPL zip file with permissive SSL, User-Agent & redirect handling
+            // 1. Download VPL zip file with User-Agent & redirect handling
             var currentUrl = item.vplUrl
-            var conn = URL(currentUrl).openConnection() as HttpURLConnection
-            enablePermissiveSSL(conn)
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-            conn.connectTimeout = 15000
-            conn.readTimeout = 30000
-            conn.instanceFollowRedirects = true
-            conn.connect()
+            var conn = openConnectionSafe(currentUrl)
 
             var status = conn.responseCode
             var redirects = 0
@@ -79,13 +88,7 @@ class VplDbImporter(private val context: Context) {
                 conn.disconnect()
                 if (newUrl.isNullOrBlank()) break
                 currentUrl = newUrl
-                conn = URL(currentUrl).openConnection() as HttpURLConnection
-                enablePermissiveSSL(conn)
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                conn.connectTimeout = 15000
-                conn.readTimeout = 30000
-                conn.instanceFollowRedirects = true
-                conn.connect()
+                conn = openConnectionSafe(currentUrl)
                 status = conn.responseCode
                 redirects++
             }
@@ -317,13 +320,7 @@ class VplDbImporter(private val context: Context) {
         val tempUsfmFile = File(context.cacheDir, "temp_${itemId}_usfm.zip")
 
         try {
-            var conn = URL(usfmUrl).openConnection() as HttpURLConnection
-            enablePermissiveSSL(conn)
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0")
-            conn.connectTimeout = 8000
-            conn.readTimeout = 12000
-            conn.instanceFollowRedirects = true
-            conn.connect()
+            val conn = openConnectionSafe(usfmUrl)
 
             if (conn.responseCode != HttpURLConnection.HTTP_OK) {
                 conn.disconnect()

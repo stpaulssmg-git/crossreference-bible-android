@@ -112,10 +112,42 @@ class BibleDatabaseHelper(val context: Context) :
         }
     }
 
-    private fun getReadableDb(dbFileName: String): SQLiteDatabase {
+    private val openDbMap = java.util.concurrent.ConcurrentHashMap<String, SQLiteDatabase>()
+
+    fun getReadableDb(dbFileName: String): SQLiteDatabase {
+        val cachedDb = openDbMap[dbFileName]
+        if (cachedDb != null && cachedDb.isOpen) {
+            return cachedDb
+        }
+
         ensureDatabaseCopied(dbFileName)
         val dbPath = context.getDatabasePath(dbFileName)
-        return SQLiteDatabase.openDatabase(dbPath.path, null, SQLiteDatabase.OPEN_READONLY)
+        val db = SQLiteDatabase.openDatabase(dbPath.path, null, SQLiteDatabase.OPEN_READONLY)
+        openDbMap[dbFileName] = db
+        return db
+    }
+
+    fun closeAllDatabases() {
+        for ((key, db) in openDbMap) {
+            try {
+                if (db.isOpen) db.close()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error closing database $key", e)
+            }
+        }
+        openDbMap.clear()
+        customBookNamesCache.clear()
+        vocabularyCache.clear()
+    }
+
+    fun closeDatabase(dbFileName: String) {
+        try {
+            openDbMap.remove(dbFileName)?.let { db ->
+                if (db.isOpen) db.close()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error closing database $dbFileName", e)
+        }
     }
 
     fun normalizeBookCode(bookRaw: String): String {
