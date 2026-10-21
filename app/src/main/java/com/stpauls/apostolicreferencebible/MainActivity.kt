@@ -3,6 +3,7 @@ package com.stpauls.apostolicreferencebible
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.Dialog
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.Typeface
@@ -1080,7 +1081,7 @@ class MainActivity : AppCompatActivity() {
         btnCloseSearch?.setColorFilter(Color.parseColor(colors.titleColor))
         btnCloseSearch?.setOnClickListener { searchDialog.dismiss() }
 
-        dialogView.findViewById<View>(R.id.searchBoxRow)?.setBackgroundColor(Color.parseColor(colors.chipBg))
+        dialogView.findViewById<View>(R.id.searchBoxRow)?.backgroundTintList = ColorStateList.valueOf(Color.parseColor(colors.chipBg))
         dialogView.findViewById<ImageView>(R.id.ivSearchIcon)?.setColorFilter(Color.parseColor(colors.subtitleColor))
         dialogView.findViewById<ImageButton>(R.id.btnClearQuery)?.setColorFilter(Color.parseColor(colors.subtitleColor))
         dialogView.findViewById<View>(R.id.vSearchDivider)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
@@ -1952,6 +1953,12 @@ class MainActivity : AppCompatActivity() {
         val btnClose = dialogView.findViewById<ImageButton>(R.id.btnCloseCatalog)
         btnClose?.setColorFilter(Color.parseColor(colors.titleColor))
         btnClose?.setOnClickListener { dialog.dismiss() }
+
+        val searchContainer = dialogView.findViewById<View>(R.id.catalogSearchContainer)
+        searchContainer?.backgroundTintList = ColorStateList.valueOf(Color.parseColor(colors.chipBg))
+
+        val ivSearchIcon = dialogView.findViewById<ImageView>(R.id.ivCatalogSearchIcon)
+        ivSearchIcon?.setColorFilter(Color.parseColor(colors.subtitleColor))
 
         val etSearch = dialogView.findViewById<EditText>(R.id.etCatalogSearch)
         etSearch?.setTextColor(Color.parseColor(colors.titleColor))

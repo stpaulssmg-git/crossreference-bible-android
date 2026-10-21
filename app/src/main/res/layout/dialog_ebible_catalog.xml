@@ -4,8 +4,8 @@
     android:id="@+id/catalogContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#FBF9F5">
+    android:background="#FBF9F5"
+    android:orientation="vertical">
 
     <!-- Top Bar -->
     <RelativeLayout
@@ -18,13 +18,13 @@
 
         <ImageButton
             android:id="@+id/btnCloseCatalog"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Close Catalog"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:contentDescription="@string/catalog_close_desc"
+            android:src="@drawable/ic_close"
             app:tint="#1C1B1F" />
 
         <TextView
@@ -32,7 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Download Bibles (ebible.org)"
+            android:text="@string/catalog_title"
             android:textColor="#1C1B1F"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -47,41 +47,39 @@
 
     <!-- Search Input Box -->
     <LinearLayout
+        android:id="@+id/catalogSearchContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="12dp">
+        android:layout_height="44dp"
+        android:layout_margin="12dp"
+        android:background="@drawable/bg_search_input"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:background="@drawable/bg_search_input"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp">
+        <ImageView
+            android:id="@+id/ivCatalogSearchIcon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@string/search_icon_desc"
+            android:src="@drawable/ic_search"
+            app:tint="#757575" />
 
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:contentDescription="Search Icon"
-                android:src="@android:drawable/ic_menu_search"
-                app:tint="#757575" />
-
-            <EditText
-                android:id="@+id/etCatalogSearch"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:background="@null"
-                android:hint="Search language or country (Swahili, French...)"
-                android:imeOptions="actionSearch"
-                android:singleLine="true"
-                android:textColor="#1C1B1F"
-                android:textColorHint="#757575"
-                android:textSize="14sp" />
-
-        </LinearLayout>
+        <EditText
+            android:id="@+id/etCatalogSearch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:background="@null"
+            android:hint="@string/catalog_search_hint"
+            android:imeOptions="actionSearch"
+            android:importantForAutofill="no"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textColor="#1C1B1F"
+            android:textColorHint="#757575"
+            android:textSize="14sp" />
 
     </LinearLayout>
 
@@ -91,7 +89,9 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:clipToPadding="false"
         android:paddingStart="12dp"
-        android:paddingEnd="12dp" />
+        android:paddingEnd="12dp"
+        android:paddingBottom="12dp" />
 
 </LinearLayout>

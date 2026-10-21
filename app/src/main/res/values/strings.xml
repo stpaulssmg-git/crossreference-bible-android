@@ -18,4 +18,8 @@
     <string name="prev_page">◄ Prev</string>
     <string name="next_page">Next ►</string>
     <string name="page_indicator_placeholder">Page 1 of 1</string>
+    <string name="catalog_title">Download Bibles (ebible.org)</string>
+    <string name="catalog_close_desc">Close Catalog</string>
+    <string name="catalog_search_hint">Search language or country (Swahili, French&#8230;)</string>
+    <string name="search_icon_desc">Search Icon</string>
 </resources>
