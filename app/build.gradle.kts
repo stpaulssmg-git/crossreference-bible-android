@@ -12,6 +12,7 @@ val localProperties = Properties().apply {
     }
 }
 
+val releaseStoreFile = localProperties.getProperty("RELEASE_STORE_FILE") ?: System.getenv("RELEASE_STORE_FILE") ?: ""
 val releaseStorePassword = localProperties.getProperty("RELEASE_STORE_PASSWORD") ?: System.getenv("RELEASE_STORE_PASSWORD") ?: ""
 val releaseKeyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS") ?: System.getenv("RELEASE_KEY_ALIAS") ?: ""
 val releaseKeyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD") ?: System.getenv("RELEASE_KEY_PASSWORD") ?: ""
@@ -32,7 +33,7 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystoreFile = file("arb-release-keystore.jks")
+            val keystoreFile = file(releaseStoreFile)
             if (keystoreFile.exists()) {
                 storeFile = keystoreFile
                 storePassword = releaseStorePassword
