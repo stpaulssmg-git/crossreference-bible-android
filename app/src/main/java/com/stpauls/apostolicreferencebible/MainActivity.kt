@@ -2138,22 +2138,12 @@ class MainActivity : AppCompatActivity() {
                                     .putStringSet(KEY_ENABLED_TRANS, enabledTranslations)
                                     .apply()
 
-                                currentPrimaryTranslation = newVariantId
                                 saveTranslationPreferences()
-
-                                // If current book doesn't exist in newly downloaded translation (e.g. Genesis when downloading NT-only Finnish), start at Matthew 1
-                                if (!dbHelper.hasBook(newVariantId, BIBLE_BOOKS[currentBookIndex].code)) {
-                                    val firstBookIdx = dbHelper.getFirstAvailableBookIndex(newVariantId)
-                                    if (firstBookIdx >= 0) {
-                                        currentBookIndex = firstBookIdx
-                                        currentChapter = 1
-                                    }
-                                }
 
                                 loadCurrentChapter()
                                 cachedSearchDialog = null
                                 dialog.dismiss()
-                                Toast.makeText(this@MainActivity, "${item.title} installed & loaded!", Toast.LENGTH_LONG).show()
+                                Toast.makeText(this@MainActivity, "${item.title} downloaded & added to comparison!", Toast.LENGTH_LONG).show()
                             }
                         },
                         onError = { errorMsg ->

@@ -349,7 +349,6 @@ class BibleDatabaseHelper(val context: Context) :
             } while (cursor.moveToNext())
         }
         cursor.close()
-        db.close()
 
         val totalMatches = allMatchingVerses.size
         val totalPages = if (totalMatches > 0) Math.ceil(totalMatches.toDouble() / pageSize).toInt() else 0
@@ -394,7 +393,6 @@ class BibleDatabaseHelper(val context: Context) :
                 maxVerse = cursor.getInt(0)
             }
             cursor.close()
-            db.close()
         } catch (e: Exception) {
             Log.e(TAG, "Error getting max verse from kjv.db", e)
         }
@@ -413,7 +411,6 @@ class BibleDatabaseHelper(val context: Context) :
                         if (v > maxVerse) maxVerse = v
                     }
                     cursor.close()
-                    db.close()
                 } catch (_: Exception) {}
             }
         }
@@ -446,7 +443,6 @@ class BibleDatabaseHelper(val context: Context) :
             } while (cursor.moveToNext())
         }
         cursor.close()
-        db.close()
 
         val maxVerse = getMaxVerseNumberForChapter(normalizedBook, chapter)
         val fullList = mutableListOf<Verse>()
@@ -504,7 +500,6 @@ class BibleDatabaseHelper(val context: Context) :
                     } while (cursor.moveToNext())
                 }
                 cursor.close()
-                db.close()
             } catch (e: Exception) {
                 Log.e(TAG, "Error fetching secondary verses for $transCode", e)
             }
@@ -553,7 +548,6 @@ class BibleDatabaseHelper(val context: Context) :
             } while (cursor.moveToNext())
         }
         cursor.close()
-        db.close()
         return list
     }
 
@@ -585,7 +579,6 @@ class BibleDatabaseHelper(val context: Context) :
             } while (cursor.moveToNext())
         }
         cursor.close()
-        db.close()
         return list
     }
 
@@ -624,8 +617,6 @@ class BibleDatabaseHelper(val context: Context) :
             cursor.close()
         } catch (e: Exception) {
             Log.e("BibleDbHelper", "Error building vocabulary for $translationCode", e)
-        } finally {
-            try { db.close() } catch (_: Exception) {}
         }
 
         val sortedList = wordSet.sorted()
@@ -707,9 +698,7 @@ class BibleDatabaseHelper(val context: Context) :
                         }
                     }
                 }
-            } finally {
-                try { db.close() } catch (_: Exception) {}
-            }
+            } finally {}
         } catch (e: Exception) {
             Log.e("BibleDbHelper", "Error querying book_names for $translationCode", e)
         }
@@ -731,11 +720,9 @@ class BibleDatabaseHelper(val context: Context) :
 
             val db = getReadableDb(dbFileName)
             val cursor = db.rawQuery("SELECT COUNT(*) FROM verses", null)
-            val count = cursor.use {
+            return cursor.use {
                 if (it.moveToFirst()) it.getInt(0) else 0
             }
-            try { db.close() } catch (_: Exception) {}
-            return count
         } catch (e: Exception) {
             Log.e("BibleDbHelper", "Error getting verse count for $translationCode", e)
             return 0
@@ -750,9 +737,7 @@ class BibleDatabaseHelper(val context: Context) :
 
             val db = getReadableDb(dbFileName)
             val cursor = db.rawQuery("SELECT 1 FROM verses WHERE book = ? LIMIT 1", arrayOf(bookCode))
-            val exists = cursor.use { it.moveToFirst() }
-            try { db.close() } catch (_: Exception) {}
-            return exists
+            return cursor.use { it.moveToFirst() }
         } catch (e: Exception) {
             Log.e("BibleDbHelper", "Error checking book $bookCode in $translationCode", e)
             return false
@@ -770,7 +755,6 @@ class BibleDatabaseHelper(val context: Context) :
             val firstBookCode = cursor.use {
                 if (it.moveToFirst()) it.getString(0) else null
             }
-            try { db.close() } catch (_: Exception) {}
 
             if (!firstBookCode.isNullOrEmpty()) {
                 val idx = BIBLE_BOOKS.indexOfFirst { it.code.equals(firstBookCode, ignoreCase = true) }
@@ -891,7 +875,6 @@ class BibleDatabaseHelper(val context: Context) :
             cursor.close()
         }
 
-        db.close()
         if (verseList.isEmpty()) return null
 
         val isSingleVerse = verseList.size == 1
@@ -942,7 +925,6 @@ class BibleDatabaseHelper(val context: Context) :
                     result.add(TranslationVerse(transCode.uppercase(), transName, ""))
                 }
                 cursor.close()
-                db.close()
             } catch (e: Exception) {
                 Log.e(TAG, "Error fetching compare verse for $transCode", e)
                 result.add(TranslationVerse(transCode.uppercase(), transName, ""))
