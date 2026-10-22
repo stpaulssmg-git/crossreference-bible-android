@@ -80,7 +80,7 @@
                     android:src="@android:drawable/ic_menu_search"
                     app:tint="#1C1B1F" />
 
-                <TextView
+                <ImageView
                     android:id="@+id/tvActiveTranslationBadge"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
@@ -89,11 +89,9 @@
                     android:clickable="true"
                     android:contentDescription="Manage Translations"
                     android:focusable="true"
-                    android:gravity="center"
-                    android:text="⋮"
-                    android:textColor="#1C1B1F"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:padding="6dp"
+                    android:src="@drawable/ic_dots_plus"
+                    app:tint="#1C1B1F" />
 
                 <TextView
                     android:id="@+id/btnThemePicker"

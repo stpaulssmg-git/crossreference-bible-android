@@ -10,6 +10,7 @@ data class EbibleCatalogItem(
     val language: String,
     val country: String,
     val title: String,
+    val shortTitle: String = "",
     val vplUrl: String
 )
 
@@ -87,6 +88,7 @@ fun parseTranslationsCsv(csvText: String): List<EbibleCatalogItem> {
     val localLangNameIdx = headers.indexOf("languageName")
     val dialectIdx = headers.indexOf("dialect")
     val titleIdx = headers.indexOf("title")
+    val shortTitleIdx = headers.indexOf("shortTitle")
     val downloadableIdx = headers.indexOf("downloadable")
 
     if (transIdIdx == -1) return items
@@ -121,6 +123,10 @@ fun parseTranslationsCsv(csvText: String): List<EbibleCatalogItem> {
             cols[titleIdx].trim()
         } else langName
 
+        val shortTitle = if (shortTitleIdx != -1 && cols.size > shortTitleIdx && cols[shortTitleIdx].trim().isNotEmpty()) {
+            cols[shortTitleIdx].trim()
+        } else title
+
         val countryDesc = if (dialect.isNotEmpty()) "Dialect: $dialect • Variant ID: $transId" else "Variant ID: $transId"
 
         items.add(
@@ -130,6 +136,7 @@ fun parseTranslationsCsv(csvText: String): List<EbibleCatalogItem> {
                 language = langName,
                 country = countryDesc,
                 title = title,
+                shortTitle = shortTitle,
                 vplUrl = "https://ebible.org/Scriptures/${transId}_vpl.zip"
             )
         )

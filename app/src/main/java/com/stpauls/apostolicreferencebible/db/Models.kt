@@ -43,6 +43,7 @@ data class SearchResult(
 data class TranslationInfo(
     val code: String,
     val name: String,
+    val shortTitle: String = "",
     val dbName: String,
     val isPrimary: Boolean,
     val isEnabled: Boolean
@@ -55,13 +56,13 @@ data class TranslationVerse(
 )
 
 val INSTALLED_TRANSLATIONS = listOf(
-    TranslationInfo("KJV", "King James Version", "kjv.db", isPrimary = true, isEnabled = true),
-    TranslationInfo("H/G", "Hebrew OT / Greek TR NT", "hgb.db", isPrimary = false, isEnabled = true),
-    TranslationInfo("ABG", "Apostolic Polyglot (Greek)", "abg.db", isPrimary = false, isEnabled = true),
-    TranslationInfo("ABE", "Apostolic Polyglot (English)", "abe.db", isPrimary = false, isEnabled = true),
-    TranslationInfo("LXX", "Thomson Septuagint (English)", "lxx.db", isPrimary = false, isEnabled = true),
-    TranslationInfo("T4T", "Translation for Translators", "t4t.db", isPrimary = false, isEnabled = true),
-    TranslationInfo("NAS", "NASB (English)", "nas.db", isPrimary = false, isEnabled = true)
+    TranslationInfo("KJV", "King James Version", "KJV", "kjv.db", isPrimary = true, isEnabled = true),
+    TranslationInfo("H/G", "Hebrew OT / Greek TR NT", "Hebrew / Greek", "hgb.db", isPrimary = false, isEnabled = true),
+    TranslationInfo("ABG", "Apostolic Polyglot (Greek)", "Apostolic Polyglot (Grk)", "abg.db", isPrimary = false, isEnabled = true),
+    TranslationInfo("ABE", "Apostolic Polyglot (English)", "Apostolic Polyglot (Eng)", "abe.db", isPrimary = false, isEnabled = true),
+    TranslationInfo("LXX", "Thomson Septuagint (English)", "Thomson Septuagint", "lxx.db", isPrimary = false, isEnabled = true),
+    TranslationInfo("T4T", "Translation for Translators", "Translation for Translators", "t4t.db", isPrimary = false, isEnabled = true),
+    TranslationInfo("NAS", "NASB (English)", "NASB", "nas.db", isPrimary = false, isEnabled = true)
 )
 
 val TRANSLATION_MAP = INSTALLED_TRANSLATIONS.associate { it.code to it.name }

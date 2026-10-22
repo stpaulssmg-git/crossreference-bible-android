@@ -335,11 +335,12 @@ class MainActivity : AppCompatActivity() {
                     val obj = array.getJSONObject(i)
                     val code = obj.getString("code")
                     val name = obj.getString("name")
+                    val shortTitle = if (obj.has("shortTitle")) obj.getString("shortTitle") else ""
                     val dbName = obj.getString("dbName")
                     val dbFile = getDatabasePath(dbName)
 
                     if (dbFile.exists() && dbFile.length() > 1024) {
-                        val info = TranslationInfo(code, name, dbName, isPrimary = false, isEnabled = true)
+                        val info = TranslationInfo(code, name, shortTitle, dbName, isPrimary = false, isEnabled = true)
                         downloadedTranslationsMap[code.uppercase()] = info
                         validArray.put(obj)
                     } else {
@@ -633,10 +634,15 @@ class MainActivity : AppCompatActivity() {
         val localizedBookName = getLocalizedBookName(bookInfo.code, activeTranslation, dbHelper)
         tvHeaderTitle.text = "$localizedBookName $currentChapter"
 
-        val transName = TRANSLATION_MAP[activeTranslation.uppercase()]
-            ?: downloadedTranslationsMap[activeTranslation.uppercase()]?.name
+        val transInfo = INSTALLED_TRANSLATIONS.find { it.code.equals(activeTranslation, ignoreCase = true) }
+            ?: downloadedTranslationsMap[activeTranslation.uppercase()]
+
+        val displaySubtitle = transInfo?.shortTitle?.ifBlank { null }
+            ?: transInfo?.name
+            ?: TRANSLATION_MAP[activeTranslation.uppercase()]
             ?: activeTranslation
-        tvHeaderSubtitle.text = transName
+
+        tvHeaderSubtitle.text = displaySubtitle
 
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         currentFontSize = prefs.getFloat(KEY_FONT_SIZE, currentFontSize)
@@ -2022,6 +2028,7 @@ class MainActivity : AppCompatActivity() {
             val obj = JSONObject()
             obj.put("code", info.code)
             obj.put("name", info.name)
+            obj.put("shortTitle", info.shortTitle)
             obj.put("dbName", info.dbName)
             array.put(obj)
         }
@@ -2118,9 +2125,11 @@ class MainActivity : AppCompatActivity() {
                         onSuccess = { dbName ->
                             runOnUiThread {
                                 val newVariantId = item.id.uppercase()
+                                val shortTitle = item.shortTitle.ifBlank { item.title }
                                 val newTransInfo = TranslationInfo(
                                     code = newVariantId,
                                     name = "${item.language} (${item.title})",
+                                    shortTitle = shortTitle,
                                     dbName = dbName,
                                     isPrimary = false,
                                     isEnabled = true
