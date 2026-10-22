@@ -9,7 +9,6 @@ import java.io.FileOutputStream
 class BibleDatabaseHelper(val context: Context) :
     SQLiteOpenHelper(context, "dummy.db", null, 1) {
 
-    private val vocabularyCache = java.util.concurrent.ConcurrentHashMap<String, List<String>>()
     private val customBookNamesCache = java.util.concurrent.ConcurrentHashMap<String, Map<String, String>>()
 
     companion object {
@@ -149,7 +148,6 @@ class BibleDatabaseHelper(val context: Context) :
         }
         openDbMap.clear()
         customBookNamesCache.clear()
-        vocabularyCache.clear()
     }
 
     fun closeDatabase(dbFileName: String) {
@@ -316,10 +314,22 @@ class BibleDatabaseHelper(val context: Context) :
         }
 
         val sqlPattern = "%$cleanTerm%"
-        val wordRegex = if (isWildcard) {
-            Regex("\\b${Regex.escape(cleanTerm)}\\w*", RegexOption.IGNORE_CASE)
-        } else {
-            Regex("\\b${Regex.escape(cleanTerm)}\\b", RegexOption.IGNORE_CASE)
+        val hasTrailingSpace = query.endsWith(" ") || query.endsWith("\t")
+        val isPunctuationOnly = query.all { !it.isLetterOrDigit() }
+
+        val wordRegex = when {
+            isPunctuationOnly -> {
+                Regex(Regex.escape(cleanTerm), RegexOption.IGNORE_CASE)
+            }
+            hasTrailingSpace -> {
+                Regex("\\b${Regex.escape(cleanTerm)}\\b", RegexOption.IGNORE_CASE)
+            }
+            isWildcard -> {
+                Regex("\\b${Regex.escape(cleanTerm)}\\w*", RegexOption.IGNORE_CASE)
+            }
+            else -> {
+                Regex("\\b${Regex.escape(cleanTerm)}", RegexOption.IGNORE_CASE)
+            }
         }
 
         val otSet = BIBLE_BOOKS.subList(0, 39).map { it.code }.toSet()
@@ -592,84 +602,6 @@ class BibleDatabaseHelper(val context: Context) :
         }
         cursor.close()
         return list
-    }
-
-    fun getTranslationVocabulary(translationCode: String): List<String> {
-        val key = translationCode.lowercase()
-        vocabularyCache[key]?.let { return it }
-
-        val dbFileName = getDbFileName(translationCode)
-        val db = try {
-            getReadableDb(dbFileName)
-        } catch (e: Exception) {
-            Log.e("BibleDbHelper", "Error opening DB for vocabulary $translationCode", e)
-            return emptyList()
-        }
-
-        val wordSet = mutableSetOf<String>()
-        try {
-            val cursor = db.query(
-                "verses",
-                arrayOf("text"),
-                null, null, null, null, null
-            )
-            val textIdx = cursor.getColumnIndex("text")
-            if (textIdx != -1 && cursor.moveToFirst()) {
-                val regex = Regex("\\p{L}+")
-                do {
-                    val text = cursor.getString(textIdx) ?: continue
-                    regex.findAll(text).forEach { match ->
-                        val word = match.value.lowercase()
-                        if (word.length >= 3) {
-                            wordSet.add(word)
-                        }
-                    }
-                } while (cursor.moveToNext())
-            }
-            cursor.close()
-        } catch (e: Exception) {
-            Log.e("BibleDbHelper", "Error building vocabulary for $translationCode", e)
-        }
-
-        val sortedList = wordSet.sorted()
-        vocabularyCache[key] = sortedList
-        return sortedList
-    }
-
-    fun getWordSuggestions(translationCode: String, prefix: String, limit: Int = 10): List<String> {
-        val cleanPrefix = prefix.trim().lowercase()
-        if (cleanPrefix.length < 3) return emptyList()
-
-        val vocab = getTranslationVocabulary(translationCode)
-        if (vocab.isEmpty()) return emptyList()
-
-        var low = 0
-        var high = vocab.size - 1
-        var startIndex = -1
-
-        while (low <= high) {
-            val mid = (low + high) ushr 1
-            val midWord = vocab[mid]
-            if (midWord.startsWith(cleanPrefix)) {
-                startIndex = mid
-                high = mid - 1
-            } else if (midWord < cleanPrefix) {
-                low = mid + 1
-            } else {
-                high = mid - 1
-            }
-        }
-
-        if (startIndex == -1) return emptyList()
-
-        val results = mutableListOf<String>()
-        var curr = startIndex
-        while (curr < vocab.size && vocab[curr].startsWith(cleanPrefix) && results.size < limit) {
-            results.add(vocab[curr])
-            curr++
-        }
-
-        return results
     }
 
     fun getCustomBookNames(translationCode: String): Map<String, String> {

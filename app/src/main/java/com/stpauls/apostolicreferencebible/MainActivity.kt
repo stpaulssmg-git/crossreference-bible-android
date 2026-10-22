@@ -58,7 +58,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.stpauls.apostolicreferencebible.ui.WordSuggestionAdapter
 import com.stpauls.apostolicreferencebible.db.BIBLE_BOOKS
 import com.stpauls.apostolicreferencebible.db.BibleDatabaseHelper
 import com.stpauls.apostolicreferencebible.db.searchEbibleCatalog
@@ -1188,16 +1187,6 @@ class MainActivity : AppCompatActivity() {
 
         val tvResultCount = dialogView.findViewById<TextView>(R.id.tvResultCount)
         val rvSearchResults = dialogView.findViewById<RecyclerView>(R.id.rvSearchResults)
-        val rvWordSuggestions = dialogView.findViewById<RecyclerView>(R.id.rvWordSuggestions)
-        rvWordSuggestions.layoutManager = LinearLayoutManager(this)
-
-        lateinit var suggestionAdapter: WordSuggestionAdapter
-        suggestionAdapter = WordSuggestionAdapter(colors) { selectedWord ->
-            etSearchQuery.setText(selectedWord)
-            etSearchQuery.setSelection(selectedWord.length)
-            rvWordSuggestions.visibility = View.GONE
-        }
-        rvWordSuggestions.adapter = suggestionAdapter
 
         tvResultCount.setTextColor(Color.parseColor(colors.subtitleColor))
         btnPrevPage.setTextColor(Color.parseColor(colors.chipTextColor))
@@ -1223,7 +1212,6 @@ class MainActivity : AppCompatActivity() {
 
         btnClearQuery.setOnClickListener {
             etSearchQuery.setText("")
-            rvWordSuggestions.visibility = View.GONE
         }
 
         var activeFilterBookCode: String? = null
@@ -1437,9 +1425,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        btnClearQuery.setOnClickListener {
+            etSearchQuery.setText("")
+        }
+
         // Onscreen keyboard Enter/Search action listener to execute jump or minimize keyboard
         etSearchQuery.setOnEditorActionListener { _, actionId, _ ->
-            rvWordSuggestions.visibility = View.GONE
             if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_NULL) {
                 // Minimize onscreen keyboard
                 val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
@@ -1461,46 +1452,34 @@ class MainActivity : AppCompatActivity() {
             false
         }
 
+        val searchDebounceHandler = Handler(Looper.getMainLooper())
+        var searchDebounceRunnable: Runnable? = null
+
         etSearchQuery.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                val query = s?.toString()?.trim().orEmpty()
+                val rawQuery = s?.toString().orEmpty()
+                val trimmedQuery = rawQuery.trim()
                 activeFilterBookCode = null
 
-                if (query.isEmpty()) {
+                searchDebounceRunnable?.let { searchDebounceHandler.removeCallbacks(it) }
+
+                if (rawQuery.isEmpty()) {
                     btnClearQuery.visibility = View.GONE
                     containerDirectJumps.visibility = View.GONE
-                    rvWordSuggestions.visibility = View.GONE
                     layoutSearchStatsBar.visibility = View.GONE
                     layoutPaginationBar.visibility = View.GONE
-                    tvResultCount.text = "Type a reference (mar 1 3) or word (love..)"
+                    tvResultCount.text = "Type a reference (e.g. mar 1 3) or word (e.g. love, ?)"
                     adapter.updateResults(emptyList(), "")
                     return
                 }
 
                 btnClearQuery.visibility = View.VISIBLE
 
-                if (query.length >= 3) {
-                    executor.execute {
-                        val suggestions = dbHelper.getWordSuggestions(currentPrimaryTranslation, query, limit = 8)
-                        runOnUiThread {
-                            val currentInput = etSearchQuery.text?.toString()?.trim().orEmpty()
-                            if (suggestions.isNotEmpty() && currentInput == query) {
-                                suggestionAdapter.updateSuggestions(suggestions)
-                                rvWordSuggestions.visibility = View.VISIBLE
-                            } else {
-                                rvWordSuggestions.visibility = View.GONE
-                            }
-                        }
-                    }
-                } else {
-                    rvWordSuggestions.visibility = View.GONE
-                }
-
                 // Step 1: Direct Reference Jump Matches (Supports multiple matching books e.g. ma 3 2 -> Matthew 3:2, Mark 3:2, Malachi 3:2)
-                val directJumps = dbHelper.parseDirectReferences(query, currentPrimaryTranslation)
+                val directJumps = dbHelper.parseDirectReferences(trimmedQuery, currentPrimaryTranslation)
                 containerDirectJumps.removeAllViews()
 
                 if (directJumps.isNotEmpty()) {
@@ -1529,7 +1508,23 @@ class MainActivity : AppCompatActivity() {
                     containerDirectJumps.visibility = View.GONE
                 }
 
-                executeSearchQuery(query, 1)
+                // Check 2-character requirement or punctuation/space bypass
+                val hasPunctuationOrSpace = rawQuery.any { !it.isLetterOrDigit() }
+                val meetsLengthRequirement = rawQuery.length >= 2 || hasPunctuationOrSpace
+
+                if (!meetsLengthRequirement && directJumps.isEmpty()) {
+                    layoutSearchStatsBar.visibility = View.GONE
+                    layoutPaginationBar.visibility = View.GONE
+                    tvResultCount.text = "Type 2+ characters or punctuation (e.g. ?) to search..."
+                    adapter.updateResults(emptyList(), "")
+                    return
+                }
+
+                // Step 2: Live Debounced Search Execution (150ms)
+                searchDebounceRunnable = Runnable {
+                    executeSearchQuery(rawQuery, 1)
+                }
+                searchDebounceHandler.postDelayed(searchDebounceRunnable!!, 150)
             }
         })
 
