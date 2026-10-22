@@ -298,7 +298,11 @@ class VplDbImporter(private val context: Context) {
             // 4. Fetch official USFM archive to extract native localized book names if book_names has < 10 entries
             if (localizedBookNames.size < 10) {
                 onProgress("Fetching localized book titles for ${item.title}...")
-                fetchAndPopulateUsfmBookNames(item.id, dbPath, dbHelper)
+                try {
+                    fetchAndPopulateUsfmBookNames(item.id, dbPath, dbHelper)
+                } catch (t: Throwable) {
+                    Log.w(TAG, "USFM book name fetch skipped for ${item.id}: ${t.message}")
+                }
             }
 
             onSuccess(dbFileName)
