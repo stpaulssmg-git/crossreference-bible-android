@@ -16,14 +16,35 @@ data class EbibleCatalogItem(
 
 private var cachedCatalogList: List<EbibleCatalogItem>? = null
 
+fun loadCatalogFilterProperties(context: Context): Map<String, String> {
+    val filters = mutableMapOf<String, String>()
+    try {
+        context.assets.open("catalog_filters.properties").use { inputStream ->
+            val props = java.util.Properties()
+            props.load(inputStream)
+            for (name in props.stringPropertyNames()) {
+                val value = props.getProperty(name)?.trim().orEmpty()
+                if (name.isNotBlank() && value.isNotBlank()) {
+                    filters[name.trim()] = value
+                }
+            }
+        }
+    } catch (e: Exception) {
+        Log.e("EbibleCatalog", "Error reading catalog_filters.properties", e)
+    }
+    return filters
+}
+
 fun loadOfflineCatalog(context: Context): List<EbibleCatalogItem> {
     cachedCatalogList?.let { return it }
+
+    val filterRules = loadCatalogFilterProperties(context)
 
     try {
         val cachedFile = File(context.filesDir, "translations_cache.csv")
         if (cachedFile.exists() && cachedFile.length() > 100) {
             val csvText = cachedFile.readText()
-            val items = parseTranslationsCsv(csvText)
+            val items = parseTranslationsCsv(csvText, filterRules)
             if (items.isNotEmpty()) {
                 cachedCatalogList = items
                 return items
@@ -36,7 +57,7 @@ fun loadOfflineCatalog(context: Context): List<EbibleCatalogItem> {
     try {
         context.assets.open("translations.csv").use { inputStream ->
             val csvText = inputStream.bufferedReader().use { it.readText() }
-            val items = parseTranslationsCsv(csvText)
+            val items = parseTranslationsCsv(csvText, filterRules)
             if (items.isNotEmpty()) {
                 cachedCatalogList = items
                 return items
@@ -50,7 +71,8 @@ fun loadOfflineCatalog(context: Context): List<EbibleCatalogItem> {
 }
 
 fun updateCachedCatalog(context: Context, newCsvText: String): List<EbibleCatalogItem> {
-    val items = parseTranslationsCsv(newCsvText)
+    val filterRules = loadCatalogFilterProperties(context)
+    val items = parseTranslationsCsv(newCsvText, filterRules)
     if (items.isNotEmpty()) {
         cachedCatalogList = items
         try {
@@ -76,7 +98,10 @@ fun searchEbibleCatalog(query: String, catalog: List<EbibleCatalogItem>): List<E
     }
 }
 
-fun parseTranslationsCsv(csvText: String): List<EbibleCatalogItem> {
+fun parseTranslationsCsv(
+    csvText: String,
+    filterRules: Map<String, String> = emptyMap()
+): List<EbibleCatalogItem> {
     val items = mutableListOf<EbibleCatalogItem>()
     val rows = parseFullCsv(csvText)
     if (rows.size <= 1) return items
@@ -89,9 +114,17 @@ fun parseTranslationsCsv(csvText: String): List<EbibleCatalogItem> {
     val dialectIdx = headers.indexOf("dialect")
     val titleIdx = headers.indexOf("title")
     val shortTitleIdx = headers.indexOf("shortTitle")
-    val downloadableIdx = headers.indexOf("downloadable")
 
     if (transIdIdx == -1) return items
+
+    // Map column filter rules to column indices in CSV header
+    val activeFilterIndices = mutableListOf<Pair<Int, String>>()
+    for ((colName, requiredVal) in filterRules) {
+        val colIdx = headers.indexOf(colName)
+        if (colIdx != -1) {
+            activeFilterIndices.add(Pair(colIdx, requiredVal.lowercase()))
+        }
+    }
 
     for (i in 1 until rows.size) {
         val cols = rows[i]
@@ -100,12 +133,29 @@ fun parseTranslationsCsv(csvText: String): List<EbibleCatalogItem> {
         val transId = cols[transIdIdx].trim()
         if (transId.isEmpty()) continue
 
-        val isDownloadable = if (downloadableIdx != -1 && cols.size > downloadableIdx) {
-            val d = cols[downloadableIdx].trim().lowercase()
-            d != "false" && d != "no" && d != "0"
-        } else true
+        // Evaluate dynamic filter rules from catalog_filters.properties
+        var passesAllFilters = true
+        for ((colIdx, requiredVal) in activeFilterIndices) {
+            val cellVal = if (cols.size > colIdx) cols[colIdx].trim().lowercase() else ""
+            if (requiredVal == "true" || requiredVal == "1" || requiredVal == "yes") {
+                if (cellVal != "true" && cellVal != "1" && cellVal != "yes") {
+                    passesAllFilters = false
+                    break
+                }
+            } else if (requiredVal == "false" || requiredVal == "0" || requiredVal == "no") {
+                if (cellVal == "true" || cellVal == "1" || cellVal == "yes") {
+                    passesAllFilters = false
+                    break
+                }
+            } else {
+                if (cellVal != requiredVal) {
+                    passesAllFilters = false
+                    break
+                }
+            }
+        }
 
-        if (!isDownloadable) continue
+        if (!passesAllFilters) continue
 
         val langCode = if (langCodeIdx != -1 && cols.size > langCodeIdx && cols[langCodeIdx].trim().isNotEmpty()) {
             cols[langCodeIdx].trim().uppercase()
