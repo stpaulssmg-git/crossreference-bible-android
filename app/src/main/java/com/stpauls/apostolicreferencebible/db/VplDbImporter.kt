@@ -117,12 +117,10 @@ class VplDbImporter(private val context: Context) {
 
             var insertedCount = 0
             val dbPath = context.getDatabasePath(dbFileName)
-            val dbHelper = BibleDatabaseHelper(context)
-            dbHelper.closeDatabase(dbFileName)
-
             if (dbPath.exists()) dbPath.delete()
             dbPath.parentFile?.mkdirs()
 
+            val dbHelper = BibleDatabaseHelper(context)
             val localizedBookNames = mutableMapOf<String, String>()
 
             // 2. Unzip and parse VPL text file
@@ -382,7 +380,6 @@ class VplDbImporter(private val context: Context) {
             if (tempUsfmFile.exists()) tempUsfmFile.delete()
 
             if (localizedMap.isNotEmpty() && dbPath.exists()) {
-                dbHelper.closeDatabase(dbPath.name)
                 val db = SQLiteDatabase.openOrCreateDatabase(dbPath, null)
                 db.execSQL(
                     """
