@@ -82,9 +82,21 @@ class BibleDatabaseHelper(val context: Context) :
         if (installedInfo != null) return installedInfo.dbName
 
         val downloadedInfo = downloadedTranslationsMap[upper]
+            ?: downloadedTranslationsMap.values.find { it.code.equals(upper, ignoreCase = true) }
         if (downloadedInfo != null) return downloadedInfo.dbName
 
-        return "${translationCode.lowercase().replace("/", "")}.db"
+        val cleanCode = translationCode.lowercase().replace("-", "_").replace("/", "")
+        val ebibleName = "ebible_${cleanCode}.db"
+        if (context.getDatabasePath(ebibleName).exists()) {
+            return ebibleName
+        }
+
+        val directName = "${cleanCode}.db"
+        if (context.getDatabasePath(directName).exists()) {
+            return directName
+        }
+
+        return ebibleName
     }
 
     fun ensureDatabaseCopied(dbFileName: String) {
@@ -665,11 +677,12 @@ class BibleDatabaseHelper(val context: Context) :
         customBookNamesCache[key]?.let { return it }
 
         val dbFileName = getDbFileName(translationCode)
+        val isInstalledAsset = INSTALLED_TRANSLATIONS.any { it.dbName.equals(dbFileName, ignoreCase = true) }
         val map = mutableMapOf<String, String>()
 
         try {
             val dbFile = context.getDatabasePath(dbFileName)
-            if (!dbFile.exists()) return emptyMap()
+            if (!isInstalledAsset && !dbFile.exists()) return emptyMap()
 
             val db = getReadableDb(dbFileName)
             try {
@@ -714,9 +727,10 @@ class BibleDatabaseHelper(val context: Context) :
 
     fun getTotalVerseCount(translationCode: String): Int {
         val dbFileName = getDbFileName(translationCode)
+        val isInstalledAsset = INSTALLED_TRANSLATIONS.any { it.dbName.equals(dbFileName, ignoreCase = true) }
         try {
             val dbFile = context.getDatabasePath(dbFileName)
-            if (!dbFile.exists()) return 0
+            if (!isInstalledAsset && !dbFile.exists()) return 0
 
             val db = getReadableDb(dbFileName)
             val cursor = db.rawQuery("SELECT COUNT(*) FROM verses", null)
@@ -731,9 +745,10 @@ class BibleDatabaseHelper(val context: Context) :
 
     fun hasBook(translationCode: String, bookCode: String): Boolean {
         val dbFileName = getDbFileName(translationCode)
+        val isInstalledAsset = INSTALLED_TRANSLATIONS.any { it.dbName.equals(dbFileName, ignoreCase = true) }
         try {
             val dbFile = context.getDatabasePath(dbFileName)
-            if (!dbFile.exists()) return false
+            if (!isInstalledAsset && !dbFile.exists()) return false
 
             val db = getReadableDb(dbFileName)
             val cursor = db.rawQuery("SELECT 1 FROM verses WHERE book = ? LIMIT 1", arrayOf(bookCode))
@@ -746,9 +761,10 @@ class BibleDatabaseHelper(val context: Context) :
 
     fun getFirstAvailableBookIndex(translationCode: String): Int {
         val dbFileName = getDbFileName(translationCode)
+        val isInstalledAsset = INSTALLED_TRANSLATIONS.any { it.dbName.equals(dbFileName, ignoreCase = true) }
         try {
             val dbFile = context.getDatabasePath(dbFileName)
-            if (!dbFile.exists()) return 0
+            if (!isInstalledAsset && !dbFile.exists()) return 0
 
             val db = getReadableDb(dbFileName)
             val cursor = db.rawQuery("SELECT DISTINCT book FROM verses LIMIT 1", null)

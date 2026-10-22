@@ -115,7 +115,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvHeaderTitle: TextView
     private lateinit var tvHeaderSubtitle: TextView
     private lateinit var btnHeaderTitleContainer: LinearLayout
-    private lateinit var tvActiveTranslationBadge: TextView
+    private lateinit var tvActiveTranslationBadge: ImageView
     private lateinit var btnThemePicker: TextView
     private lateinit var btnOpenSearch: ImageButton
     private lateinit var headerBar: RelativeLayout
@@ -528,7 +528,7 @@ class MainActivity : AppCompatActivity() {
         tvHeaderSubtitle.setTextColor(Color.parseColor(headerSubtitleColor))
         btnOpenSearch.setColorFilter(Color.parseColor(headerText))
 
-        tvActiveTranslationBadge.setTextColor(Color.parseColor(headerText))
+        tvActiveTranslationBadge.setColorFilter(Color.parseColor(headerText))
         @Suppress("DEPRECATION")
         tvActiveTranslationBadge.background?.setColorFilter(Color.parseColor(headerText), PorterDuff.Mode.SRC_IN)
 
@@ -637,7 +637,6 @@ class MainActivity : AppCompatActivity() {
             ?: downloadedTranslationsMap[activeTranslation.uppercase()]?.name
             ?: activeTranslation
         tvHeaderSubtitle.text = transName
-        tvActiveTranslationBadge.text = "⋮"
 
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         currentFontSize = prefs.getFloat(KEY_FONT_SIZE, currentFontSize)
