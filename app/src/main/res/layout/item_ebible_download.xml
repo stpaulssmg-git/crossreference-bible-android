@@ -114,7 +114,7 @@
                 android:id="@+id/tvEbibleDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#DDDDDD"
+                android:textColor="#A0A0A0"
                 android:textSize="11.5sp"
                 android:lineSpacingExtra="2dp"
                 android:visibility="gone" />
@@ -124,7 +124,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textColor="#B0BEC5"
+                android:textColor="#9E9E9E"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
@@ -134,7 +134,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textColor="#90A4AE"
+                android:textColor="#909090"
                 android:textSize="11sp"
                 android:visibility="gone" />
 
@@ -143,7 +143,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textColor="#888888"
+                android:textColor="#808080"
                 android:textSize="11sp"
                 android:visibility="gone" />
 

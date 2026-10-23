@@ -102,7 +102,7 @@ class EbibleCatalogAdapter(
 
             if (item.description.isNotBlank()) {
                 holder.tvDescription.text = "📝 Description: ${item.description}"
-                holder.tvDescription.setTextColor(Color.parseColor(themeColors.titleColor))
+                holder.tvDescription.setTextColor(Color.parseColor(themeColors.subtitleColor))
                 holder.tvDescription.visibility = View.VISIBLE
             } else {
                 holder.tvDescription.visibility = View.GONE
@@ -118,7 +118,7 @@ class EbibleCatalogAdapter(
             }
             if (scopeText.isNotEmpty()) {
                 holder.tvBooksScope.text = scopeText
-                holder.tvBooksScope.setTextColor(Color.parseColor(themeColors.refTitleColor))
+                holder.tvBooksScope.setTextColor(Color.parseColor(themeColors.subtitleColor))
                 holder.tvBooksScope.visibility = View.VISIBLE
             } else {
                 holder.tvBooksScope.visibility = View.GONE
@@ -134,7 +134,7 @@ class EbibleCatalogAdapter(
 
             if (item.copyright.isNotBlank()) {
                 holder.tvCopyright.text = "⚖️ ${item.copyright}"
-                holder.tvCopyright.setTextColor(Color.parseColor(themeColors.previewTextColor))
+                holder.tvCopyright.setTextColor(Color.parseColor(themeColors.subtitleColor))
                 holder.tvCopyright.visibility = View.VISIBLE
             } else {
                 holder.tvCopyright.visibility = View.GONE
