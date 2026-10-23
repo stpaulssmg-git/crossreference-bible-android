@@ -105,11 +105,11 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
 ---
 
 ### 6. 🎨 Custom Reader Themes
-Four unified themes applying consistent styling across status bar, header, reader view, and modal dialogs with a 1-tap **Crimson $\rightarrow$ Warm $\rightarrow$ Teal $\rightarrow$ Dark** cycle order (Crimson set as default first-install theme):
-* 🍷 **Crimson** *(Default First-Install)*
-* 📜 **Warm** (Parchment)
+Four unified themes applying consistent styling across status bar, header, reader view, and modal dialogs with a 1-tap **Dark $\rightarrow$ Teal $\rightarrow$ Warm $\rightarrow$ Crimson** cycle order (Dark set as default first-install theme):
+* 🌙 **Dark** *(Default First-Install)*
 * 🌲 **Teal**
-* 🌙 **Dark**
+* 📜 **Warm** (Parchment)
+* 🍷 **Crimson**
 
 ---
 
