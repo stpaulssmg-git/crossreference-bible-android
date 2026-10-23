@@ -7,10 +7,10 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
 ## ✨ Key Features
 
 ### 1. 📖 Multilingual Reader & Ergonomic Navigation
-* **Clean Two-Line Header & 3-Dot Action Badge**:
-  * **Passage & Active Translation Subtitle**: Displays the active passage (`Genesis 1`) alongside the active Bible version title (*King James Version*, *Biblica® Avoin Elävä uutinen*, *Louis Segond 1910*, etc.) directly below the book title in a clean 11sp subtitle font.
-  * **Top Action Cluster**: Grouped actions including `[🔍]` Search, `[⋮]` Circular 3-Dot Version Management Badge, and `[D]` Theme Picker.
-  * **1-Tap / Long-Press Version Switcher**: Tapping or long-pressing the circular `[⋮]` badge opens the full-screen translation management modal.
+* **Clean Two-Line Header & 5-Dot Action Badge**:
+  * **Passage & Concise Translation Subtitle**: Displays the active passage (`Genesis 1`) alongside the short translation title (*King James Version*, *Bukiyip NT*, *Kannada (IRV)*, *Louis Segond 1910*, etc.) directly below the book title in a clean 11sp subtitle font.
+  * **Top Action Cluster**: Grouped actions including `[🔍]` Search, `[:::]` Centered 5-Dot Cross Action Badge, and `[D]` Theme Picker.
+  * **1-Tap / Long-Press Version Switcher**: Tapping or long-pressing the circular `[:::]` badge opens the full-screen translation management modal.
 * **On-the-Fly Top Chapter Swipe HUD**:
   * Top-positioned floating HUD card displaying localized book name and chapter number on the fly during horizontal swipe gestures, featuring high-contrast Dark Mode styling.
 * **Native Localized Book Names (3-Tier Engine)**:
@@ -28,27 +28,35 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
 ---
 
 ### 2. 🌐 Dynamic ebible.org Online Catalog & Translation Manager
-* **100% Dynamic CSV Catalog Engine**:
-  * Driven by `ebible.org`'s official `translations.csv` index bundled in `assets/translations.csv`.
-  * Supports all **1,000+ public domain Bibles**, regional languages, and dialects across the world.
-* **Zero Startup Network Overhead**:
-  * Catalog searching works 100% offline out-of-the-box using the bundled CSV asset.
-  * Network refresh occurs **only when opening the "Download Bibles" catalog modal**, keeping app launch instant and completely unaffected by network state.
-* **Full Language Variant Support**:
-  * Displays every available language variant side-by-side with clear Variant IDs (e.g., Burmese `mya` / `myajvb`, Italian `ita1885`, Finnish `fin`, French `fraLSG`, Spanish `spaRV1909`, Swahili `swhonen`).
+* **Configurable Catalog Filtering (`catalog_filters.properties`)**:
+  * Driven by `ebible.org`'s official `translations.csv` registry bundled in `assets/translations.csv`.
+  * Column filter rules configured externally in `assets/catalog_filters.properties` (e.g. `downloadable=true`, `Certified=true`), allowing easy addition of future rules without writing Kotlin code.
+* **Expandable Metadata Rows**:
+  * Tapping any Bible item row in the catalog expands an inline details panel displaying:
+    * 📝 **Description**: Full translation description.
+    * 📚 **Available Books**: Old Testament (`OT`) & New Testament (`NT`) book counts.
+    * 📅 **Last Updated**: Last published/updated date.
+    * ⚖️ **Copyright**: Copyright statement and publisher disclosures.
+* **3.5x Fast Database Importer Engine**:
+  * Optimized VPL/USFM importer using fast zero-regex string tokenizing, 64 KB stream buffers, and bulk-import SQLite PRAGMAs (`PRAGMA synchronous = OFF`).
+* **Silent Non-Intrusive Operations**:
+  * Background downloading, database extraction, and translation switches operate silently without interrupting the user with popup toast messages.
 * **Inline Catalog Delete & Storage Limits**:
   * **Direct Delete Button**: Red trash icon (`btnDeleteEbible`) in the catalog list for downloaded versions—permanently deletes the `.db` file from storage and transforms the row back to an active Download button.
-  * **20-Translation Limit**: Enforces a maximum limit of **20 downloaded translations** to manage storage space, prompting users to delete an existing version before adding a new one.
-* **Full-Screen Version Management Modal**:
-  * Opens in full-screen mode (`BottomSheetBehavior.STATE_EXPANDED`). Tapping **REFRESH LIST** refreshes the list in full-screen view seamlessly.
+  * **20-Translation Limit**: Enforces a maximum limit of **20 downloaded translations** to manage storage space.
+* **Ergonomic Touch Targets**:
+  * Taller 48dp standard touch target height for "Download Bibles" and "Refresh List" buttons in settings.
 
 ---
 
-### 3. 🔍 Advanced Search Engine & Vertical Word Suggestions
-* **Vertical Word Autocomplete Suggestions**:
-  * Typing $\ge 3$ letters (e.g. `tes`) displays a live vertical suggestion list below the search bar showing matching vocabulary words from the active translation (`test`, `testament`, `testify`, `testator`).
-  * Powered by an in-memory vocabulary index with Unicode letter matching (`\p{L}+`) and binary search $O(\log N)$ prefix lookup.
-  * Tapping any suggested word auto-populates the search bar and executes the search.
+### 3. 🔍 Advanced Live Verse Search Engine
+* **Instant Live Verse Matching as You Type**:
+  * **150ms Input Debounce**: Fast typing executes search with 150ms input debouncing, keeping keyboard input 100% fluid.
+  * **Prefix Word Boundary Matching**: Typing `"te"` instantly matches words starting with `te` (*testimony*, *testified*, *tent*, *temple*).
+* **2-Character & Punctuation Bypass Engine**:
+  * **1 Letter (`a`, `t`)**: Shows prompt *"Type 2+ characters or punctuation (e.g. ?) to search..."*.
+  * **Letter + Space (`a `, `I `)**: Bypasses 1-letter restriction to match standalone single-letter words (*"a man"*, *"I am"*).
+  * **Single Punctuation (`?`, `.`, `!`, `"`)**: Bypasses 1-letter restriction to instantly search for questions, direct speech, or warnings.
 * **Smart Direct Reference Jump**:
   * Supports 1-letter, 2-letter, and 3-letter prefix matches (e.g., `h 3 2`, `ho 3 2`, or `hos 3 2` instantly targets **Hosea 3:2**; `ma 3 2` targets **Matthew 3:2**, **Mark 3:2**, **Malachi 3:2**).
   * Direct jump cards showing reference and total chapter count with one-tap verse scrolling and temporary highlight glow.
@@ -59,7 +67,7 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
   * Displays real-time Old Testament and New Testament occurrence counts (`KJV: OT - 124 [ + ] | NT - 86 [ + ]`).
   * Tapping `[ + ]` opens a 2-column modal sheet to filter search results by specific Bible books.
 * **ebible.org Search Fallback**:
-  * If a search query yields 0 verse results (e.g. searching for a language like `Swahili` or `French`), an interactive action prompt appears: `"No verses found for 'Swahili'. Tap to search ebible.org catalog ➔"`.
+  * If a search query yields 0 verse results (e.g. searching for a language like `Swahili` or `French`), an interactive action prompt appears: `"No certified downloadable Bible found matching 'Swahili'. Tap to search ebible.org catalog ➔"`.
 * **Pagination & Swipe Gestures**:
   * Displays 10 verses per page with total occurrence counts (`Showing 10 verses for "love" (Total 280)`).
   * Smooth horizontal swipe gestures or `Prev / Next` controls to navigate between result pages.
@@ -109,9 +117,9 @@ Four unified themes applying consistent styling across status bar, header, reade
 
 * **Language**: Kotlin 100%
 * **Architecture**: Android Native (AppCompat, Material Design 3, RecyclerView, CardView, BottomSheetDialog, RelativeLayout)
-* **Local Database**: Embedded SQLite (`verses`, `cross_references`, `book_names`, multi-db comparison instances)
+* **Local Database**: Embedded SQLite (`verses`, `cross_references`, `book_names`, multi-db comparison instances) with in-memory connection handle caching (`openDbMap`) for zero connection churn.
 * **Rendering Engine**: Custom `HtmlEngine` injecting dynamic CSS, JavaScript bridges, and HTML DOM elements into a high-performance `WebView`.
-* **Data Assets**: Bundled `translations.csv` (1,000+ ebible.org registry) and `core_book_names.json` (core localized book name maps).
+* **Data Assets**: Bundled `translations.csv` (1,000+ ebible.org registry), `catalog_filters.properties` (column filter configuration), and `core_book_names.json` (core localized book name maps).
 * **Concurrency**: Executors single-thread background tasks for thread-safe DB reads and VPL/USFM Bible parsing.
 
 ---
