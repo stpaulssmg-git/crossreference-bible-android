@@ -11,7 +11,12 @@ data class EbibleCatalogItem(
     val country: String,
     val title: String,
     val shortTitle: String = "",
-    val vplUrl: String
+    val vplUrl: String,
+    val description: String = "",
+    val updateDate: String = "",
+    val otBooks: String = "0",
+    val ntBooks: String = "0",
+    val copyright: String = ""
 )
 
 private var cachedCatalogList: List<EbibleCatalogItem>? = null
@@ -114,6 +119,11 @@ fun parseTranslationsCsv(
     val dialectIdx = headers.indexOf("dialect")
     val titleIdx = headers.indexOf("title")
     val shortTitleIdx = headers.indexOf("shortTitle")
+    val descIdx = headers.indexOf("description")
+    val updateDateIdx = headers.indexOf("UpdateDate")
+    val otBooksIdx = headers.indexOf("OTbooks")
+    val ntBooksIdx = headers.indexOf("NTbooks")
+    val copyrightIdx = headers.indexOf("Copyright")
 
     if (transIdIdx == -1) return items
 
@@ -177,6 +187,12 @@ fun parseTranslationsCsv(
             cols[shortTitleIdx].trim()
         } else title
 
+        val description = if (descIdx != -1 && cols.size > descIdx) cols[descIdx].trim() else ""
+        val updateDate = if (updateDateIdx != -1 && cols.size > updateDateIdx) cols[updateDateIdx].trim() else ""
+        val otBooks = if (otBooksIdx != -1 && cols.size > otBooksIdx) cols[otBooksIdx].trim() else "0"
+        val ntBooks = if (ntBooksIdx != -1 && cols.size > ntBooksIdx) cols[ntBooksIdx].trim() else "0"
+        val copyright = if (copyrightIdx != -1 && cols.size > copyrightIdx) cols[copyrightIdx].trim() else ""
+
         val countryDesc = if (dialect.isNotEmpty()) "Dialect: $dialect • Variant ID: $transId" else "Variant ID: $transId"
 
         items.add(
@@ -187,7 +203,12 @@ fun parseTranslationsCsv(
                 country = countryDesc,
                 title = title,
                 shortTitle = shortTitle,
-                vplUrl = "https://ebible.org/Scriptures/${transId}_vpl.zip"
+                vplUrl = "https://ebible.org/Scriptures/${transId}_vpl.zip",
+                description = description,
+                updateDate = updateDate,
+                otBooks = otBooks,
+                ntBooks = ntBooks,
+                copyright = copyright
             )
         )
     }

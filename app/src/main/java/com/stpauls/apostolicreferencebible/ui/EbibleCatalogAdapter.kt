@@ -23,6 +23,7 @@ class EbibleCatalogAdapter(
     private val allItems = mutableListOf<EbibleCatalogItem>()
     private val filteredItems = mutableListOf<EbibleCatalogItem>()
     private val downloadingIds = mutableSetOf<String>()
+    private val expandedItemIds = mutableSetOf<String>()
 
     fun setCatalog(items: List<EbibleCatalogItem>) {
         allItems.clear()
@@ -60,11 +61,20 @@ class EbibleCatalogAdapter(
 
     class CatalogViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardView: CardView = itemView.findViewById(R.id.cardEbibleItem)
+        val layoutHeader: View = itemView.findViewById(R.id.layoutEbibleHeader)
         val tvTitle: TextView = itemView.findViewById(R.id.tvEbibleTitle)
         val tvDetails: TextView = itemView.findViewById(R.id.tvEbibleDetails)
         val pbProgress: ProgressBar = itemView.findViewById(R.id.pbDownloadProgress)
         val btnDownloadIcon: ImageButton = itemView.findViewById(R.id.btnDownloadIcon)
         val btnDeleteEbible: ImageButton = itemView.findViewById(R.id.btnDeleteEbible)
+
+        // Expandable details container and metadata views
+        val layoutDetails: View = itemView.findViewById(R.id.layoutEbibleDetails)
+        val vDivider: View = itemView.findViewById(R.id.vEbibleDivider)
+        val tvDescription: TextView = itemView.findViewById(R.id.tvEbibleDescription)
+        val tvBooksScope: TextView = itemView.findViewById(R.id.tvEbibleBooksScope)
+        val tvUpdateDate: TextView = itemView.findViewById(R.id.tvEbibleUpdateDate)
+        val tvCopyright: TextView = itemView.findViewById(R.id.tvEbibleCopyright)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CatalogViewHolder {
@@ -83,7 +93,65 @@ class EbibleCatalogAdapter(
         holder.tvDetails.text = item.country
         holder.tvDetails.setTextColor(Color.parseColor(themeColors.subtitleColor))
 
-        val isDownloaded = downloadedIds.contains(item.id.lowercase()) || downloadedIds.contains(item.code.lowercase())
+        // Expand/Collapse Details
+        val isExpanded = expandedItemIds.contains(item.id.lowercase())
+        holder.layoutDetails.visibility = if (isExpanded) View.VISIBLE else View.GONE
+
+        if (isExpanded) {
+            holder.vDivider.setBackgroundColor(Color.parseColor(themeColors.dividerColor))
+
+            if (item.description.isNotBlank()) {
+                holder.tvDescription.text = "📝 Description: ${item.description}"
+                holder.tvDescription.setTextColor(Color.parseColor(themeColors.titleColor))
+                holder.tvDescription.visibility = View.VISIBLE
+            } else {
+                holder.tvDescription.visibility = View.GONE
+            }
+
+            val otCnt = item.otBooks.toIntOrNull() ?: 0
+            val ntCnt = item.ntBooks.toIntOrNull() ?: 0
+            val scopeText = when {
+                otCnt > 0 && ntCnt > 0 -> "📚 Available Books: OT ($otCnt Books) • NT ($ntCnt Books)"
+                otCnt > 0 -> "📚 Available Books: OT ($otCnt Books)"
+                ntCnt > 0 -> "📚 Available Books: NT ($ntCnt Books)"
+                else -> ""
+            }
+            if (scopeText.isNotEmpty()) {
+                holder.tvBooksScope.text = scopeText
+                holder.tvBooksScope.setTextColor(Color.parseColor(themeColors.refTitleColor))
+                holder.tvBooksScope.visibility = View.VISIBLE
+            } else {
+                holder.tvBooksScope.visibility = View.GONE
+            }
+
+            if (item.updateDate.isNotBlank()) {
+                holder.tvUpdateDate.text = "📅 Last Updated: ${item.updateDate}"
+                holder.tvUpdateDate.setTextColor(Color.parseColor(themeColors.subtitleColor))
+                holder.tvUpdateDate.visibility = View.VISIBLE
+            } else {
+                holder.tvUpdateDate.visibility = View.GONE
+            }
+
+            if (item.copyright.isNotBlank()) {
+                holder.tvCopyright.text = "⚖️ ${item.copyright}"
+                holder.tvCopyright.setTextColor(Color.parseColor(themeColors.previewTextColor))
+                holder.tvCopyright.visibility = View.VISIBLE
+            } else {
+                holder.tvCopyright.visibility = View.GONE
+            }
+        }
+
+        holder.layoutHeader.setOnClickListener {
+            val key = item.id.lowercase()
+            if (expandedItemIds.contains(key)) {
+                expandedItemIds.remove(key)
+            } else {
+                expandedItemIds.add(key)
+            }
+            notifyItemChanged(position)
+        }
+
+        val isDownloaded = downloadedIds.contains(item.id.lowercase())
         val isDownloading = downloadingIds.contains(item.id.lowercase())
 
         if (isDownloading) {
@@ -92,12 +160,7 @@ class EbibleCatalogAdapter(
             holder.btnDeleteEbible.visibility = View.GONE
         } else if (isDownloaded) {
             holder.pbProgress.visibility = View.GONE
-            holder.btnDownloadIcon.visibility = View.VISIBLE
-            holder.btnDownloadIcon.setImageResource(android.R.drawable.checkbox_on_background)
-            holder.btnDownloadIcon.isEnabled = false
-            holder.btnDownloadIcon.setOnClickListener(null)
-            holder.btnDownloadIcon.alpha = 0.4f
-            holder.btnDownloadIcon.clearColorFilter()
+            holder.btnDownloadIcon.visibility = View.GONE
 
             holder.btnDeleteEbible.visibility = View.VISIBLE
             holder.btnDeleteEbible.setOnClickListener {
