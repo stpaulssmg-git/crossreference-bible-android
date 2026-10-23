@@ -13,8 +13,8 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
   * **1-Tap / Long-Press Version Switcher**: Tapping or long-pressing the circular `[:::]` badge opens the full-screen translation management modal.
 * **On-the-Fly Top Chapter Swipe HUD**:
   * Top-positioned floating HUD card displaying localized book name and chapter number on the fly during horizontal swipe gestures, featuring high-contrast Dark Mode styling.
-* **Native Localized Book Names (3-Tier Engine)**:
-  * **Downloaded Bibles**: Automatically extracts official USFM book titles (`\h`, `\toc1`) during import and stores them in a `book_names` table in the SQLite database (`ebible_${id}.db`).
+* **Native Localized Book Names**:
+  * **Custom Database Titles**: Resolves custom book names directly from the `book_names` table in the downloaded SQLite database (`ebible_${id}.db`) if embedded in the file.
   * **Core Built-In Bibles**: Loads native 66-book names for core non-English translations (Hebrew/Greek, Kannada, Telugu, Malayalam, Tamil, Hindi, Spanish) from `assets/core_book_names.json`.
   * **Fallback**: Default English names (`Genesis` to `Revelation`).
 * **Partial & New Testament-Only Bible Navigation**:
@@ -37,8 +37,8 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
     * 📚 **Available Books**: Old Testament (`OT`) & New Testament (`NT`) book counts.
     * 📅 **Last Updated**: Last published/updated date.
     * ⚖️ **Copyright**: Copyright statement and publisher disclosures.
-* **3.5x Fast Database Importer Engine**:
-  * Optimized VPL/USFM importer using fast zero-regex string tokenizing, 64 KB stream buffers, and bulk-import SQLite PRAGMAs (`PRAGMA synchronous = OFF`).
+* **3.5x Fast VPL Importer Engine**:
+  * High-speed VPL (Verse-Per-Line) ZIP importer using fast zero-regex string tokenizing, 64 KB stream buffers, and bulk-import SQLite PRAGMAs (`PRAGMA synchronous = OFF`).
 * **Silent Non-Intrusive Operations**:
   * Background downloading, database extraction, and translation switches operate silently without interrupting the user with popup toast messages.
 * **Inline Catalog Delete & Storage Limits**:
@@ -67,7 +67,7 @@ An advanced, feature-rich Android Bible application built with Kotlin, Jetpack c
   * Displays real-time Old Testament and New Testament occurrence counts (`KJV: OT - 124 [ + ] | NT - 86 [ + ]`).
   * Tapping `[ + ]` opens a 2-column modal sheet to filter search results by specific Bible books.
 * **ebible.org Search Fallback**:
-  * If a search query yields 0 verse results (e.g. searching for a language like `Swahili` or `French`), an interactive action prompt appears: `"No certified downloadable Bible found matching 'Swahili'. Tap to search ebible.org catalog ➔"`.
+  * If a search query yields 0 verse results (e.g. searching for a language like `Swahili` or `French`), an interactive action prompt appears: *"No certified downloadable Bible found matching 'Swahili'. Tap to search ebible.org catalog ➔"*.
 * **Pagination & Swipe Gestures**:
   * Displays 10 verses per page with total occurrence counts (`Showing 10 verses for "love" (Total 280)`).
   * Smooth horizontal swipe gestures or `Prev / Next` controls to navigate between result pages.
@@ -120,7 +120,7 @@ Four unified themes applying consistent styling across status bar, header, reade
 * **Local Database**: Embedded SQLite (`verses`, `cross_references`, `book_names`, multi-db comparison instances) with in-memory connection handle caching (`openDbMap`) for zero connection churn.
 * **Rendering Engine**: Custom `HtmlEngine` injecting dynamic CSS, JavaScript bridges, and HTML DOM elements into a high-performance `WebView`.
 * **Data Assets**: Bundled `translations.csv` (1,000+ ebible.org registry), `catalog_filters.properties` (column filter configuration), and `core_book_names.json` (core localized book name maps).
-* **Concurrency**: Executors single-thread background tasks for thread-safe DB reads and VPL/USFM Bible parsing.
+* **Concurrency**: Executors single-thread background tasks for thread-safe DB reads and VPL Bible parsing.
 
 ---
 
