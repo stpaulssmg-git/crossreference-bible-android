@@ -562,9 +562,11 @@ class MainActivity : AppCompatActivity() {
         val isLightStatusBg = themeName != "dark"
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightStatusBars = isLightStatusBg
+            isAppearanceLightNavigationBars = isLightStatusBg
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT < 35) {
+            @Suppress("DEPRECATION")
             window.statusBarColor = Color.parseColor(statusBg)
         }
 
@@ -1131,11 +1133,15 @@ class MainActivity : AppCompatActivity() {
         val searchWindow = searchDialog.window
         if (searchWindow != null) {
             searchWindow.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-            searchWindow.statusBarColor = Color.parseColor(colors.expandedGridBg)
+            if (Build.VERSION.SDK_INT < 35) {
+                @Suppress("DEPRECATION")
+                searchWindow.statusBarColor = Color.parseColor(colors.expandedGridBg)
+            }
 
             val isLight = currentTheme != "dark"
             WindowCompat.getInsetsController(searchWindow, searchWindow.decorView).apply {
                 isAppearanceLightStatusBars = isLight
+                isAppearanceLightNavigationBars = isLight
             }
         }
 
@@ -2045,11 +2051,15 @@ class MainActivity : AppCompatActivity() {
         val searchWindow = dialog.window
         if (searchWindow != null) {
             searchWindow.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-            searchWindow.statusBarColor = Color.parseColor(colors.expandedGridBg)
+            if (Build.VERSION.SDK_INT < 35) {
+                @Suppress("DEPRECATION")
+                searchWindow.statusBarColor = Color.parseColor(colors.expandedGridBg)
+            }
 
             val isLight = currentTheme != "dark"
             WindowCompat.getInsetsController(searchWindow, searchWindow.decorView).apply {
                 isAppearanceLightStatusBars = isLight
+                isAppearanceLightNavigationBars = isLight
             }
         }
 
