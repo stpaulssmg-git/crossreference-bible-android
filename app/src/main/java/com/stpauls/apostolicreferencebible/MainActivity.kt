@@ -732,7 +732,14 @@ class MainActivity : AppCompatActivity() {
         dialogView.setBackgroundColor(Color.parseColor(colors.sheetBg))
         dialogView.findViewById<View>(R.id.vDragHandle)?.setBackgroundColor(Color.parseColor(colors.dragHandleColor))
         dialogView.findViewById<TextView>(R.id.tvAboutTitle)?.setTextColor(Color.parseColor(colors.titleColor))
-        dialogView.findViewById<TextView>(R.id.tvAboutVersion)?.setTextColor(Color.parseColor(colors.subtitleColor))
+        val tvAboutVersion = dialogView.findViewById<TextView>(R.id.tvAboutVersion)
+        tvAboutVersion?.setTextColor(Color.parseColor(colors.subtitleColor))
+        val currentVerName = try {
+            packageManager.getPackageInfo(packageName, 0).versionName
+        } catch (_: Exception) {
+            "1.6"
+        }
+        tvAboutVersion?.text = "Version $currentVerName • Offline Study Edition"
         dialogView.findViewById<View>(R.id.vAboutDivider)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
         dialogView.findViewById<View>(R.id.vAboutDivider2)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
         dialogView.findViewById<View>(R.id.vAboutDividerFont)?.setBackgroundColor(Color.parseColor(colors.dividerColor))
